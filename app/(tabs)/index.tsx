@@ -8,6 +8,7 @@ import {
   Palette,
   Settings,
   Sliders,
+  Sparkles,
   User,
   Wand2,
   Zap
