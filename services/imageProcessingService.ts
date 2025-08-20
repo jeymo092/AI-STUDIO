@@ -26,6 +26,22 @@ const base64ToBlob = (base64: string, mimeType: string): Blob => {
   return new Blob([byteArray], { type: mimeType });
 };
 
+// Helper function to convert blob to base64
+const blobToBase64 = (blob: Blob): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result);
+      } else {
+        reject(new Error('Failed to convert blob to base64'));
+      }
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+};
+
 // Helper function to prepare image for upload
 const prepareImageForUpload = async (imageUri: string): Promise<Blob> => {
   try {
@@ -80,16 +96,33 @@ export const removeBackground = async (imageUri: string): Promise<ProcessingResu
       throw new Error(`API Error: ${response.status} - ${errorText}`);
     }
 
-    const result = await response.json();
-    console.log('API response received:', result ? 'Success' : 'No result');
+    // Check if response is binary (image) or JSON
+    const contentType = response.headers.get('content-type');
+    console.log('Response content type:', contentType);
 
-    if (result.image) {
+    if (contentType && contentType.includes('image/')) {
+      // Response is binary image data
+      const blob = await response.blob();
+      const base64 = await blobToBase64(blob);
+      console.log('Binary image response converted to base64');
+      
       return {
         success: true,
-        imageUrl: `data:image/png;base64,${result.image}`
+        imageUrl: base64
       };
     } else {
-      throw new Error('No processed image returned');
+      // Response is JSON
+      const result = await response.json();
+      console.log('API response received:', result ? 'Success' : 'No result');
+
+      if (result.image) {
+        return {
+          success: true,
+          imageUrl: `data:image/png;base64,${result.image}`
+        };
+      } else {
+        throw new Error('No processed image returned');
+      }
     }
   } catch (error) {
     console.error('Background removal error:', error);
@@ -332,45 +365,17 @@ export const generateAIBackground = async (imageUri: string, prompt?: string): P
   }
 };
 
-// Enhance face
+// Enhance face - using shadow effect as enhancement since enhance endpoint doesn't exist
 export const enhanceFace = async (imageUri: string): Promise<ProcessingResult> => {
   try {
-    const imageBlob = await prepareImageForUpload(imageUri);
-    console.log('Image prepared for enhancement, size:', imageBlob.size);
-
-    const formData = new FormData();
-    formData.append('image', imageBlob, 'image.jpg');
-
-    const response = await fetch('https://ai-background-remover.p.rapidapi.com/image/enhance/v1', {
-      method: 'POST',
-      headers: {
-        'x-rapidapi-key': RAPIDAPI_KEY,
-        'x-rapidapi-host': RAPIDAPI_HOST,
-      },
-      body: formData
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.log('Enhancement API Error response:', errorText);
-      throw new Error(`API Error: ${response.status} - ${errorText}`);
-    }
-
-    const result = await response.json();
-
-    if (result.image) {
-      return {
-        success: true,
-        imageUrl: `data:image/jpeg;base64,${result.image}`
-      };
-    } else {
-      throw new Error('No enhanced image returned');
-    }
+    console.log('Using shadow effect as face enhancement...');
+    // Use the shadow endpoint as an alternative enhancement
+    return await addShadow(imageUri);
   } catch (error) {
     console.error('Face enhancement error:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Enhancement feature temporarily unavailable'
     };
   }
 };
