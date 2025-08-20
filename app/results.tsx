@@ -25,7 +25,7 @@ export default function ResultsScreen() {
 
   // For testing - use a sample image if no image is provided
   const testImageUri = "https://picsum.photos/400/400";
-  
+
   // Handle local file URIs properly
   const [displayOriginalImage, setDisplayOriginalImage] = useState(originalImage || testImageUri);
   const [displayProcessedImage, setDisplayProcessedImage] = useState(processedImage || testImageUri);
@@ -54,7 +54,7 @@ export default function ResultsScreen() {
           try {
             const fileName = originalImage.split('/').pop() || 'original.jpg';
             const newPath = `${FileSystem.documentDirectory}original_${Date.now()}_${fileName}`;
-            
+
             await FileSystem.copyAsync({
               from: originalImage,
               to: newPath
@@ -68,12 +68,12 @@ export default function ResultsScreen() {
             setDisplayOriginalImage(`${originalImage}?t=${cacheBuster}`);
           }
         }
-        
+
         if (processedImage && processedImage.startsWith('file://')) {
           try {
             const fileName = processedImage.split('/').pop() || 'processed.jpg';
             const newPath = `${FileSystem.documentDirectory}processed_${Date.now()}_${fileName}`;
-            
+
             await FileSystem.copyAsync({
               from: processedImage,
               to: newPath
@@ -132,7 +132,7 @@ export default function ResultsScreen() {
   const handleDownload = async () => {
     try {
       console.log('Downloading processed image...');
-      
+
       if (!displayProcessedImage) {
         Alert.alert('Error', 'No processed image to download');
         return;
@@ -159,7 +159,7 @@ export default function ResultsScreen() {
   const handleShare = async () => {
     try {
       console.log('Sharing processed image...');
-      
+
       if (!displayProcessedImage) {
         Alert.alert('Error', 'No processed image to share');
         return;
@@ -198,7 +198,7 @@ export default function ResultsScreen() {
   const retryImageLoad = async () => {
     setOriginalImageError(false);
     setProcessedImageError(false);
-    
+
     try {
       // Try multiple approaches for retry
       if (originalImage && originalImage.startsWith('file://')) {
@@ -206,7 +206,7 @@ export default function ResultsScreen() {
           // First try: Copy to documents directory
           const fileName = originalImage.split('/').pop() || 'original.jpg';
           const newPath = `${FileSystem.documentDirectory}original_retry_${Date.now()}_${fileName}`;
-          
+
           await FileSystem.copyAsync({
             from: originalImage,
             to: newPath
@@ -215,7 +215,7 @@ export default function ResultsScreen() {
           setDisplayOriginalImage(newPath);
         } catch (copyError) {
           console.error('Retry: Failed to copy original:', copyError);
-          
+
           // Second try: Use cache busting
           const cacheBuster = Date.now();
           const cacheBustUri = `${originalImage}?t=${cacheBuster}`;
@@ -223,13 +223,13 @@ export default function ResultsScreen() {
           setDisplayOriginalImage(cacheBustUri);
         }
       }
-      
+
       if (processedImage && processedImage.startsWith('file://')) {
         try {
           // First try: Copy to documents directory
           const fileName = processedImage.split('/').pop() || 'processed.jpg';
           const newPath = `${FileSystem.documentDirectory}processed_retry_${Date.now()}_${fileName}`;
-          
+
           await FileSystem.copyAsync({
             from: processedImage,
             to: newPath
@@ -238,7 +238,7 @@ export default function ResultsScreen() {
           setDisplayProcessedImage(newPath);
         } catch (copyError) {
           console.error('Retry: Failed to copy processed:', copyError);
-          
+
           // Second try: Use cache busting
           const cacheBuster = Date.now();
           const cacheBustUri = `${processedImage}?t=${cacheBuster}`;
@@ -270,11 +270,11 @@ export default function ResultsScreen() {
             Back
           </Text>
         </TouchableOpacity>
-        
+
         <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>
           {processingType} Results
         </Text>
-        
+
         <View style={{ width: 80 }} />
       </View>
 
