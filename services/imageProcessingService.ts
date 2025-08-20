@@ -60,7 +60,7 @@ export const removeBackground = async (imageUri: string): Promise<ProcessingResu
     const base64Image = await imageToBase64(imageUri);
     console.log('Image converted to base64, length:', base64Image.length);
 
-    const response = await fetch('https://ai-background-remover.p.rapidapi.com/image/remove/v1', {
+    const response = await fetch('https://ai-background-remover.p.rapidapi.com/image/matte/v1', {
       method: 'POST',
       headers: {
         'x-rapidapi-key': RAPIDAPI_KEY,
@@ -338,11 +338,11 @@ export const enhanceFace = async (imageUri: string): Promise<ProcessingResult> =
   try {
     const base64Image = await imageToBase64(imageUri);
 
-    const response = await fetch('https://ai-face-enhancer.p.rapidapi.com/face/editing/enhance-face', {
+    const response = await fetch('https://ai-background-remover.p.rapidapi.com/image/enhance/v1', {
       method: 'POST',
       headers: {
         'x-rapidapi-key': RAPIDAPI_KEY,
-        'x-rapidapi-host': 'ai-face-enhancer.p.rapidapi.com',
+        'x-rapidapi-host': RAPIDAPI_HOST,
         'Content-Type': 'application/x-www-form-urlencoded'
       },
       body: new URLSearchParams({
