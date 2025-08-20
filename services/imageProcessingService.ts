@@ -55,23 +55,21 @@ export const removeBackground = async (imageUri: string): Promise<ProcessingResu
   try {
     console.log('Starting background removal process...');
     console.log('Image URI length:', imageUri.length);
-    console.log('Preparing image for upload...');
 
-    console.log('Converting image to blob for upload...');
+    // Use the same approach as other functions for consistency
+    const base64Image = await imageToBase64(imageUri);
+    console.log('Image converted to base64, length:', base64Image.length);
 
-    const imageBlob = await prepareImageForUpload(imageUri);
-    console.log('Image blob prepared, size:', imageBlob.size);
-
-    const formData = new FormData();
-    formData.append('image', imageBlob, 'image.jpg');
-
-    const response = await fetch('https://ai-background-remover.p.rapidapi.com/image/matte/v1', {
+    const response = await fetch('https://ai-background-remover.p.rapidapi.com/image/remove/v1', {
       method: 'POST',
       headers: {
         'x-rapidapi-key': RAPIDAPI_KEY,
         'x-rapidapi-host': RAPIDAPI_HOST,
+        'Content-Type': 'application/x-www-form-urlencoded'
       },
-      body: formData
+      body: new URLSearchParams({
+        image: base64Image
+      })
     });
 
     console.log('API Response status:', response.status);
@@ -83,37 +81,19 @@ export const removeBackground = async (imageUri: string): Promise<ProcessingResu
       throw new Error(`API Error: ${response.status} - ${errorText}`);
     }
 
-    // Check if response is binary image data
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('image')) {
-      // Handle binary image response
-      const arrayBuffer = await response.arrayBuffer();
-      const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    const result = await response.json();
+    console.log('API response received:', result ? 'Success' : 'No result');
 
+    if (result.image) {
       return {
         success: true,
-        imageUrl: `data:image/png;base64,${base64}`
+        imageUrl: `data:image/png;base64,${result.image}`
       };
     } else {
-      // Try to parse as JSON
-      try {
-        const result = await response.json();
-        if (result.image) {
-          return {
-            success: true,
-            imageUrl: `data:image/png;base64,${result.image}`
-          };
-        } else {
-          throw new Error('No processed image returned');
-        }
-      } catch (jsonError) {
-        console.error('Failed to parse JSON response:', jsonError);
-        throw new Error('Invalid response format from API');
-      }
+      throw new Error('No processed image returned');
     }
   } catch (error) {
     console.error('Background removal error:', error);
-    console.log('Full error details:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
