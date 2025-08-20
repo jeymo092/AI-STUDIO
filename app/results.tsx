@@ -146,19 +146,19 @@ export default function ResultsScreen() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
+
         Alert.alert('Success', 'Image downloaded successfully!');
       } else {
         // For file URIs, try to save to device
         try {
           const fileName = `processed-image-${Date.now()}.png`;
           const newPath = `${FileSystem.documentDirectory}${fileName}`;
-          
+
           await FileSystem.copyAsync({
             from: displayProcessedImage,
             to: newPath
           });
-          
+
           Alert.alert('Success', `Image saved to: ${fileName}`);
         } catch (saveError) {
           console.error('Save error:', saveError);
@@ -187,7 +187,7 @@ export default function ResultsScreen() {
           const response = await fetch(displayProcessedImage);
           const blob = await response.blob();
           const file = new File([blob], 'processed-image.png', { type: 'image/png' });
-          
+
           await navigator.share({
             title: 'Processed Image',
             text: 'Check out this image I processed!',

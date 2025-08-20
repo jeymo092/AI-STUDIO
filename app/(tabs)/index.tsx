@@ -70,8 +70,8 @@ export default function HomeScreen() {
     initializePermissions();
     
     return () => {
-      console.log('HomeScreen cleanup');
       mounted = false;
+      console.log('HomeScreen cleanup');
     };
   }, []);
 
@@ -92,22 +92,23 @@ export default function HomeScreen() {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ImagePicker.MediaType.Images,
         allowsEditing: true,
         aspect: [4, 3],
         quality: 1,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        setSelectedImage(result.assets[0].uri);
-        console.log('Image selected successfully:', result.assets[0].uri);
+        const imageUri = result.assets[0].uri;
+        setSelectedImage(imageUri);
+        console.log('Image selected successfully:', imageUri);
         
         // Navigate to image processor with the selected image
         router.push({
           pathname: '/image-processor',
           params: { 
-            selectedImage: result.assets[0].uri,
-            imageUri: result.assets[0].uri
+            selectedImage: imageUri,
+            imageUri: imageUri
           }
         });
       }
@@ -134,21 +135,23 @@ export default function HomeScreen() {
       }
 
       const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaType.Images,
         allowsEditing: true,
         aspect: [4, 3],
         quality: 1,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        setSelectedImage(result.assets[0].uri);
-        console.log('Photo taken successfully:', result.assets[0].uri);
+        const imageUri = result.assets[0].uri;
+        setSelectedImage(imageUri);
+        console.log('Photo taken successfully:', imageUri);
         
         // Navigate to image processor with the taken photo
         router.push({
           pathname: '/image-processor',
           params: { 
-            selectedImage: result.assets[0].uri,
-            imageUri: result.assets[0].uri
+            selectedImage: imageUri,
+            imageUri: imageUri
           }
         });
       }
