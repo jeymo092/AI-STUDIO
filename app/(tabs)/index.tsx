@@ -19,7 +19,6 @@ import {
 import React, { useState, useEffect } from 'react';
 import { Alert, Dimensions, ScrollView, Text, TouchableOpacity, View, ImageBackground } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
 
