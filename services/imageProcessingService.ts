@@ -353,6 +353,46 @@ export const generateAIBackground = async (imageUri: string, prompt?: string): P
   }
 };
 
+// Enhance face
+export const enhanceFace = async (imageUri: string): Promise<ProcessingResult> => {
+  try {
+    const base64Image = await imageToBase64(imageUri);
+
+    const response = await fetch('https://ai-face-enhancer.p.rapidapi.com/face/editing/enhance-face', {
+      method: 'POST',
+      headers: {
+        'x-rapidapi-key': RAPIDAPI_KEY,
+        'x-rapidapi-host': 'ai-face-enhancer.p.rapidapi.com',
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: new URLSearchParams({
+        image: base64Image
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    if (result.image) {
+      return {
+        success: true,
+        imageUrl: `data:image/jpeg;base64,${result.image}`
+      };
+    } else {
+      throw new Error('No enhanced image returned');
+    }
+  } catch (error) {
+    console.error('Face enhancement error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+};
+
 // Submit HD processing
 export const submitHDProcessing = async (imageUri: string): Promise<HDProcessingResult> => {
   try {

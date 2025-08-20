@@ -19,6 +19,7 @@ import {
     addColorBackground,
     addShadow,
     generateAIBackground,
+    enhanceFace,
     submitHDProcessing,
     getHDResult
 } from '../services/imageProcessingService';
@@ -240,7 +241,7 @@ export default function ImageProcessorScreen() {
   };
 
   const handleEnhance = () => {
-    processWithType('AI Background', generateAIBackground);
+    processWithType('Face Enhancement', enhanceFace);
   };
 
   const handleHDProcessing = async () => {
