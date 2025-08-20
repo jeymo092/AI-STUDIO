@@ -26,12 +26,33 @@ export default function HomeScreen() {
   const [processedImage, setProcessedImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Handle any side effects in useEffect instead of during render
+  // Check and request permissions on mount
   useEffect(() => {
-    // This effect can be used for initial data fetching or subscriptions
-    // For this component, it seems like no specific initial setup is needed beyond state initialization.
-    // The original code had logic to handle params, which is now simplified in the new `processImage` flow.
-    // If there were persistent settings or data to load, they would go here.
+    let mounted = true;
+    
+    const initializePermissions = async () => {
+      try {
+        // Check media library permission
+        const { status: mediaStatus } = await ImagePicker.getMediaLibraryPermissionsAsync();
+        if (mediaStatus !== 'granted' && mounted) {
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
+        }
+        
+        // Check camera permission
+        const { status: cameraStatus } = await ImagePicker.getCameraPermissionsAsync();
+        if (cameraStatus !== 'granted' && mounted) {
+          await ImagePicker.requestCameraPermissionsAsync();
+        }
+      } catch (error) {
+        console.error('Permission initialization failed:', error);
+      }
+    };
+
+    initializePermissions();
+    
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const pickImage = async () => {
@@ -110,7 +131,10 @@ export default function HomeScreen() {
     // Navigate to a new screen for image processing
     router.push({
       pathname: '/image-processor',
-      params: { selectedImage: selectedImage }
+      params: { 
+        selectedImage: selectedImage,
+        imageUri: selectedImage // Pass both for compatibility
+      }
     });
   };
 

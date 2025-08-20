@@ -73,9 +73,11 @@ export const removeBackground = async (imageUri: string): Promise<ProcessingResu
     }
   } catch (error) {
     console.error('Background removal error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error('Full error details:', JSON.stringify(error, null, 2));
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: errorMessage
     };
   }
 };

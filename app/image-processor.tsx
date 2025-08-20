@@ -9,16 +9,16 @@ import {
     Sparkles,
     Wand2
 } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Alert, Dimensions, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { 
-  removeBackground, 
-  blurBackground, 
-  addGradientBackground, 
-  addColorBackground, 
-  addShadow, 
-  generateAIBackground 
+import {
+    removeBackground,
+    blurBackground,
+    addGradientBackground,
+    addColorBackground,
+    addShadow,
+    generateAIBackground
 } from '../services/imageProcessingService';
 
 interface ToolButtonProps {
@@ -111,6 +111,7 @@ export default function ImageProcessorScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [mounted, setMounted] = useState(true); // State to track if the component is mounted
   const { width } = Dimensions.get('window');
   const isSmallScreen = width < 375;
   const isMediumScreen = width >= 375 && width < 768;
@@ -118,9 +119,14 @@ export default function ImageProcessorScreen() {
   const selectedImage = React.useMemo(() => {
     return (params.selectedImage || params.imageUri) as string;
   }, [params.selectedImage, params.imageUri]);
-  
+
   console.log('Selected image:', selectedImage);
   console.log('All params:', params);
+
+  useEffect(() => {
+    // Set mounted to false when the component unmounts
+    return () => setMounted(false);
+  }, []);
 
   const handleBack = () => {
     router.back();
@@ -131,12 +137,15 @@ export default function ImageProcessorScreen() {
       Alert.alert('No Image', 'Please select an image first');
       return;
     }
+    if (!mounted) return; // Check if mounted
 
     setIsProcessing(true);
 
     try {
       console.log('Starting background removal with API...');
       const result = await removeBackground(selectedImage);
+
+      if (!mounted) return; // Check if mounted after async operation
 
       if (result.success && result.imageUrl) {
         console.log('Background removed successfully!');
@@ -155,30 +164,38 @@ export default function ImageProcessorScreen() {
       }
     } catch (error) {
       console.error('Error removing background:', error);
-      Alert.alert(
-        'Error',
-        'Failed to remove background. Please try again.',
-        [{ text: 'OK' }]
-      );
+      if (mounted) { // Check if mounted before showing alert
+        Alert.alert(
+          'Error',
+          'Failed to remove background. Please try again.',
+          [{ text: 'OK' }]
+        );
+      }
     } finally {
-      setIsProcessing(false);
+      if (mounted) { // Check if mounted before updating state
+        setIsProcessing(false);
+      }
     }
   };
 
-  const processWithType = async (processingType: string, apiFunction: any) => {
+  const processWithType = async (processingType: string, processingFunction: Function) => {
     if (!selectedImage) {
       Alert.alert('No Image', 'Please select an image first');
       return;
     }
 
+    if (!mounted) return;
+
     setIsProcessing(true);
 
     try {
-      console.log(`Starting ${processingType} with API...`);
-      const result = await apiFunction(selectedImage);
+      console.log(`Starting ${processingType}...`);
+      const result = await processingFunction(selectedImage);
+
+      if (!mounted) return;
 
       if (result.success && result.imageUrl) {
-        console.log(`${processingType} processing completed successfully!`);
+        console.log(`${processingType} successful!`);
 
         // Navigate to results screen with the images
         router.push({
@@ -194,13 +211,17 @@ export default function ImageProcessorScreen() {
       }
     } catch (error) {
       console.error(`Error with ${processingType}:`, error);
-      Alert.alert(
-        'Error',
-        `Failed to process with ${processingType}. Please try again.`,
-        [{ text: 'OK' }]
-      );
+      if (mounted) {
+        Alert.alert(
+          'Error',
+          `Failed to process with ${processingType}. Please try again.`,
+          [{ text: 'OK' }]
+        );
+      }
     } finally {
-      setIsProcessing(false);
+      if (mounted) {
+        setIsProcessing(false);
+      }
     }
   };
 
