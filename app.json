@@ -40,6 +40,12 @@
           "photosPermission": "The app accesses your photos to let you select images for editing.",
           "cameraPermission": "The app accesses your camera to let you take photos for editing."
         }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": []
+        }
       ]
     ],
     "experiments": {
