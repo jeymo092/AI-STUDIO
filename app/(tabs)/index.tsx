@@ -19,7 +19,6 @@ import {
 import React, { useState, useEffect } from 'react';
 import { Alert, Dimensions, ScrollView, Text, TouchableOpacity, View, ImageBackground } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as Font from 'expo-font';
 
 const { width, height } = Dimensions.get('window');
 
@@ -37,17 +36,6 @@ export default function HomeScreen() {
         if (!mounted) return;
         
         console.log('Initializing app...');
-        
-        // Initialize fonts first to prevent timeout issues
-        try {
-          await Font.loadAsync({});
-          console.log('Fonts loaded successfully');
-        } catch (fontError) {
-          console.warn('Font loading warning:', fontError);
-          // Continue execution even if fonts fail to load
-        }
-        
-        if (!mounted) return;
         
         // Check media library permission
         const { status: mediaStatus } = await ImagePicker.getMediaLibraryPermissionsAsync();
@@ -290,8 +278,7 @@ export default function HomeScreen() {
           <Text style={{
             fontSize: 28,
             fontWeight: 'bold',
-            color: 'white',
-            fontFamily: 'System'
+            color: 'white'
           }}>
             Ai Studio
           </Text>
@@ -334,8 +321,7 @@ export default function HomeScreen() {
             color: 'white',
             textAlign: 'center',
             marginBottom: 20,
-            lineHeight: 56,
-            fontFamily: 'System'
+            lineHeight: 56
           }}>
             Beautify{'\n'}Images
           </Text>
@@ -355,8 +341,7 @@ export default function HomeScreen() {
               color: '#1a1a1a',
               fontSize: 16,
               fontWeight: '600',
-              marginRight: 8,
-              fontFamily: 'System'
+              marginRight: 8
             }}>
               Try Now
             </Text>
