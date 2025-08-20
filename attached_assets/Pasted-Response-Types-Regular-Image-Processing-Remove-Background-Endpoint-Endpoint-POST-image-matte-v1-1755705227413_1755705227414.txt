@@ -1,0 +1,312 @@
+Response Types
+Regular Image Processing
+Remove Background Endpoint
+Endpoint: POST /image/matte/v1
+
+Success Response (200)
+Returns the processed image with transparent background.
+
+Content-Type: image/png
+Response: Binary image data (PNG format)
+Error Responses
+{
+    "message": "Image too large for regular processing. Use HD endpoint."
+}
+Status Code: 400
+Blur Background Endpoint
+Endpoint: POST /image/blur/v1
+
+Success Response (200)
+Returns the image with blurred background.
+
+Content-Type: image/png
+Response: Binary image data (PNG format)
+Error Responses
+{
+    "message": "Image too large for regular processing. Use HD endpoint."
+}
+Status Code: 400
+Color Background Endpoint
+Endpoint: POST /image/color/v1
+
+Success Response (200)
+Returns the image with colored background.
+
+Content-Type: image/png
+Response: Binary image data (PNG format)
+Error Responses
+{
+    "message": "Image too large for regular processing. Use HD endpoint."
+}
+Status Code: 400
+Gradient Background Endpoint
+Endpoint: POST /image/gradient/v1
+
+Success Response (200)
+Returns the image with gradient background.
+
+Content-Type: image/png
+Response: Binary image data (PNG format)
+Error Responses
+{
+    "message": "Image too large for regular processing. Use HD endpoint."
+}
+Status Code: 400
+Shadow Background Endpoint
+Endpoint: POST /image/shadow/v1
+
+Success Response (200)
+Returns the image with shadow effect.
+
+Content-Type: image/png
+Response: Binary image data (PNG format)
+Error Responses
+{
+    "message": "Image too large for regular processing. Use HD endpoint."
+}
+Status Code: 400
+HD Image Processing
+Submit HD Image Endpoint
+Endpoint: POST /image/hd/submit/v1
+
+Success Response (202 Accepted)
+{
+    "message": "Image submitted for processing",
+    "uuid": "550e8400-e29b-41d4-a716-446655440000",
+    "status": "processing"
+}
+Error Responses
+Invalid Image File (400)
+
+{
+    "detail": "Invalid image file"
+}
+Server Error (500)
+
+{
+    "detail": "Failed to submit image: [error details]"
+}
+Get HD Image Result Endpoint
+Endpoint: GET /image/hd/result/{uuid}
+
+Processing Response (202)
+{
+    "message": "Task is still processing",
+    "uuid": "550e8400-e29b-41d4-a716-446655440000",
+    "status": "processing"
+}
+Success Response (200)
+Returns the processed HD image.
+
+Content-Type: image/png
+Headers: Cache-Control: no-cache
+Response: Binary image data (PNG format)
+Error Responses
+Task Not Found (404)
+
+{
+    "detail": "Task not found"
+}
+Processing Failed (500)
+
+{
+    "detail": "Image processing failed"
+}
+Output File Not Found (404)
+
+{
+    "detail": "Processed image file not found"
+}
+AI Background Generation
+Generate Background Endpoint
+Endpoint: POST /image/generate/v1
+
+Success Response (200)
+Returns the image with AI-generated background.
+
+Content-Type: image/png
+Response: Binary image data (PNG format)
+Error Responses
+No Transparent Background (400)
+
+{
+    "message": "The input image must have a transparent background."
+}
+Video Processing
+Submit Video Endpoint
+Endpoint: POST /video/submit/v1
+
+Success Response (202 Accepted)
+{
+    "message": "Video submitted for processing",
+    "uuid": "550e8400-e29b-41d4-a716-446655440000",
+    "status": "processing",
+    "duration": "3.50s"
+}
+Success Response with Warning (202 Accepted)
+{
+    "message": "Video submitted for processing",
+    "uuid": "550e8400-e29b-41d4-a716-446655440000",
+    "status": "processing",
+    "duration": "5.20s",
+    "warning": "Video duration (5.20s) exceeds 4s limit. Only the first 4s will be processed.",
+    "processed_duration": "4s"
+}
+Error Responses
+Invalid File Type (400)
+
+{
+    "detail": "File must be a video"
+}
+Invalid Video File (400)
+
+{
+    "detail": "[specific validation error message]"
+}
+Invalid Background Color (400)
+
+{
+    "detail": "bg_color must be in format 'R,G,B' (e.g., '255,0,0')"
+}
+Invalid Background Image URL (400)
+
+{
+    "detail": "URL must point to an image file"
+}
+Background Image Download Failed (400)
+
+{
+    "detail": "Failed to download background image: [error details]"
+}
+Server Error (500)
+
+{
+    "detail": "Failed to submit video: [error details]"
+}
+Get Video Result Endpoint
+Endpoint: GET /video/result/{uuid}
+
+Processing Response (202)
+{
+    "message": "Video is still processing",
+    "uuid": "550e8400-e29b-41d4-a716-446655440000",
+    "status": "processing"
+}
+Processing Response with Progress (202)
+{
+    "message": "Video is still processing",
+    "uuid": "550e8400-e29b-41d4-a716-446655440000",
+    "status": "processing",
+    "current_frame": 45,
+    "total_frames": 120,
+    "progress_percentage": 37.5
+}
+Success Response with Upload Link (200)
+{
+    "message": "Video processing completed successfully",
+    "uuid": "550e8400-e29b-41d4-a716-446655440000",
+    "status": "success",
+    "upload_link": "https://cloudinary.com/video/processed_video.mp4"
+}
+Success Response with Upload Link and Trim Warning (200)
+{
+    "message": "Video processing completed successfully",
+    "uuid": "550e8400-e29b-41d4-a716-446655440000",
+    "status": "success",
+    "upload_link": "https://cloudinary.com/video/processed_video.mp4",
+    "warning": "Video was trimmed from 5.20s to 4.00s",
+    "original_duration": "5.20s",
+    "processed_duration": "4.00s"
+}
+Success Response (Direct Video File)
+Returns the processed video file.
+
+Content-Type: video/mp4 or video/webm
+Headers:
+Cache-Control: no-cache
+Content-Disposition: attachment; filename=processed_[uuid].mp4
+Additional Headers (if trimmed):
+X-Video-Warning: Original video (5.20s) was trimmed to 4 seconds
+X-Original-Duration: 5.20s
+X-Processed-Duration: 4.00s
+Response: Binary video data
+Error Responses
+Task Not Found (404)
+
+{
+    "message": "Task not found",
+    "status": "not_found"
+}
+Processing Failed (500)
+
+{
+    "message": "Video processing failed",
+    "uuid": "550e8400-e29b-41d4-a716-446655440000",
+    "status": "failed"
+}
+Output File Not Found (404)
+
+{
+    "detail": "Processed video file not found"
+}
+Error Responses
+Common HTTP Status Codes and Response Formats
+400 Bad Request
+{
+    "message": "[Specific error message describing what went wrong]"
+}
+401 Unauthorized
+{
+    "message": "[Authorization error message]"
+}
+403 Forbidden
+{
+    "message": "[Permission error message]"
+}
+404 Not Found
+{
+    "message": "[Resource not found message]"
+}
+or
+
+{
+    "detail": "[Detailed not found message]"
+}
+422 Unprocessable Entity
+{
+    "message": "Invalid request data"
+}
+500 Internal Server Error
+{
+    "message": "Internal Server Error"
+}
+or
+
+{
+    "detail": "[Detailed error message]"
+}
+Response Headers
+Image Responses
+Content-Type: image/png
+Cache-Control: no-cache (for processed images)
+Video Responses
+Content-Type: video/mp4 or video/webm
+Cache-Control: no-cache
+Content-Disposition: attachment; filename=[filename]
+X-Video-Warning: Present when video was trimmed
+X-Original-Duration: Original video duration (when trimmed)
+X-Processed-Duration: Processed video duration (when trimmed)
+Notes
+Image Size Limits: Regular processing endpoints have a maximum pixel limit of 2048 × 2048. Images exceeding this limit must use HD processing endpoints.
+
+Video Duration Limits: Videos are automatically trimmed to 4 seconds maximum. Longer videos will include warning messages in responses.
+
+Background Parameters Priority: When multiple background options are provided for video processing:
+
+bg_color has highest priority
+bg_image_url has lowest priority
+File Cleanup: Processed files are automatically cleaned up after download to save server storage.
+
+Asynchronous Processing: HD image and video processing use UUID-based task tracking for asynchronous operations.
+
+Progress Tracking: Video processing provides frame-by-frame progress information when available.
