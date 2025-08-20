@@ -63,7 +63,7 @@ export const removeBackground = async (imageUri: string): Promise<ProcessingResu
     const formData = new FormData();
     formData.append('image', imageBlob, 'image.jpg');
 
-    const response = await fetch('https://ai-background-remover.p.rapidapi.com/image/remove/v1', {
+    const response = await fetch('https://ai-background-remover.p.rapidapi.com/v1', {
       method: 'POST',
       headers: {
         'x-rapidapi-key': RAPIDAPI_KEY,
