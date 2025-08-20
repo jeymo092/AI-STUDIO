@@ -57,20 +57,21 @@ export const removeBackground = async (imageUri: string): Promise<ProcessingResu
     console.log('Image URI length:', imageUri.length);
     console.log('Preparing image for upload...');
 
-    console.log('Converting image to base64...');
+    console.log('Converting image to blob for upload...');
 
-    const base64Image = await imageToBase64(imageUri);
+    const imageBlob = await prepareImageForUpload(imageUri);
+    console.log('Image blob prepared, size:', imageBlob.size);
+
+    const formData = new FormData();
+    formData.append('image', imageBlob, 'image.jpg');
 
     const response = await fetch('https://ai-background-remover.p.rapidapi.com/image/matte/v1', {
       method: 'POST',
       headers: {
         'x-rapidapi-key': RAPIDAPI_KEY,
         'x-rapidapi-host': RAPIDAPI_HOST,
-        'Content-Type': 'application/x-www-form-urlencoded'
       },
-      body: new URLSearchParams({
-        image: base64Image
-      })
+      body: formData
     });
 
     console.log('API Response status:', response.status);
