@@ -212,19 +212,19 @@ export default function HomeScreen() {
       )}
       
       {featured ? (
-        <LinearGradient
-          colors={['#FF6B9D', '#00D4FF']}
+        <View
           style={{
             width: 60,
             height: 60,
             borderRadius: 30,
             alignItems: 'center',
             justifyContent: 'center',
-            marginBottom: 8
+            marginBottom: 8,
+            backgroundColor: '#FF6B9D'
           }}
         >
           <Icon size={28} color="white" />
-        </LinearGradient>
+        </View>
       ) : (
         <Icon size={24} color="white" style={{ marginBottom: 8 }} />
       )}
@@ -250,14 +250,14 @@ export default function HomeScreen() {
         alignItems: 'center'
       }}>
         {/* Background gradient */}
-        <LinearGradient
-          colors={['rgba(255, 107, 157, 0.3)', 'rgba(0, 212, 255, 0.3)', 'rgba(26, 26, 26, 0.8)']}
+        <View
           style={{
             position: 'absolute',
             top: 0,
             left: 0,
             right: 0,
-            bottom: 0
+            bottom: 0,
+            backgroundColor: 'rgba(255, 107, 157, 0.2)'
           }}
         />
 
