@@ -12,6 +12,14 @@ import {
 import React, { useState } from 'react';
 import { Alert, Dimensions, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { 
+  removeBackground, 
+  blurBackground, 
+  addGradientBackground, 
+  addColorBackground, 
+  addShadow, 
+  generateAIBackground 
+} from '../services/imageProcessingService';
 
 interface ToolButtonProps {
   icon: React.ReactNode;
@@ -107,7 +115,7 @@ export default function ImageProcessorScreen() {
   const isSmallScreen = width < 375;
   const isMediumScreen = width >= 375 && width < 768;
 
-  const selectedImage = params.selectedImage as string;
+  const selectedImage = (params.selectedImage || params.imageUri) as string;
   console.log('Selected image:', selectedImage);
   console.log('All params:', params);
 
@@ -116,23 +124,32 @@ export default function ImageProcessorScreen() {
   };
 
   const processBackgroundRemoval = async () => {
+    if (!selectedImage) {
+      Alert.alert('No Image', 'Please select an image first');
+      return;
+    }
+
     setIsProcessing(true);
 
     try {
-      // Simulate AI processing delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      console.log('Starting background removal with API...');
+      const result = await removeBackground(selectedImage);
 
-      console.log('Background removed successfully!');
+      if (result.success && result.imageUrl) {
+        console.log('Background removed successfully!');
 
-      // Navigate to results screen with the images
-      router.push({
-        pathname: '/results',
-        params: {
-          originalImage: selectedImage,
-          processedImage: selectedImage, // In real app, this would be the processed image
-          processingType: 'Background Removal'
-        }
-      });
+        // Navigate to results screen with the images
+        router.push({
+          pathname: '/results',
+          params: {
+            originalImage: selectedImage,
+            processedImage: result.imageUrl,
+            processingType: 'Background Removal'
+          }
+        });
+      } else {
+        throw new Error(result.error || 'Failed to process image');
+      }
     } catch (error) {
       console.error('Error removing background:', error);
       Alert.alert(
@@ -145,7 +162,7 @@ export default function ImageProcessorScreen() {
     }
   };
 
-  const processWithType = async (processingType: string) => {
+  const processWithType = async (processingType: string, apiFunction: any) => {
     if (!selectedImage) {
       Alert.alert('No Image', 'Please select an image first');
       return;
@@ -154,20 +171,24 @@ export default function ImageProcessorScreen() {
     setIsProcessing(true);
 
     try {
-      // Simulate AI processing delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      console.log(`Starting ${processingType} with API...`);
+      const result = await apiFunction(selectedImage);
 
-      console.log(`${processingType} processing completed successfully!`);
+      if (result.success && result.imageUrl) {
+        console.log(`${processingType} processing completed successfully!`);
 
-      // Navigate to results screen with the images
-      router.push({
-        pathname: '/results',
-        params: {
-          originalImage: selectedImage,
-          processedImage: selectedImage, // In real app, this would be the processed image
-          processingType: processingType
-        }
-      });
+        // Navigate to results screen with the images
+        router.push({
+          pathname: '/results',
+          params: {
+            originalImage: selectedImage,
+            processedImage: result.imageUrl,
+            processingType: processingType
+          }
+        });
+      } else {
+        throw new Error(result.error || 'Failed to process image');
+      }
     } catch (error) {
       console.error(`Error with ${processingType}:`, error);
       Alert.alert(
@@ -181,39 +202,39 @@ export default function ImageProcessorScreen() {
   };
 
   const handleEnhance = () => {
-    processWithType('AI Enhancement');
+    processWithType('Background Blur', blurBackground);
   };
 
   const handleBeautify = () => {
-    processWithType('AI Beautify');
+    processWithType('Add Shadow', addShadow);
   };
 
   const handlePortraits = () => {
-    processWithType('AI Portraits');
+    processWithType('AI Generated Background', generateAIBackground);
   };
 
   const handleFilters = () => {
-    processWithType('AI Filters');
+    processWithType('Background Blur', blurBackground);
   };
 
   const handleClarity = () => {
-    processWithType('Clarity Enhancement');
+    processWithType('Add Shadow', addShadow);
   };
 
   const handleEraser = () => {
-    processWithType('Manual Eraser');
+    processWithType('Remove Background', removeBackground);
   };
 
   const handleAdjust = () => {
-    processWithType('Fine Tune Adjustment');
+    processWithType('Background Blur', blurBackground);
   };
 
   const handleNewBackground = () => {
-    processWithType('New Background');
+    processWithType('Gradient Background', addGradientBackground);
   };
 
   const handleAutoFix = () => {
-    processWithType('Auto Fix');
+    processWithType('Color Background', (imageUri: string) => addColorBackground(imageUri, '#ffffff'));
   };
 
   return (
