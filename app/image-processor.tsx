@@ -341,7 +341,7 @@ export default function ImageProcessorScreen() {
               fontWeight: '600'
             }}>Enhance</Text>
           </View>
-        </div>
+        </View>
 
         {/* Tool Grid */}
         <View style={{
