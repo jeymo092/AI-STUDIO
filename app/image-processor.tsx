@@ -18,7 +18,9 @@ import {
     addGradientBackground,
     addColorBackground,
     addShadow,
-    generateAIBackground
+    generateAIBackground,
+    submitHDProcessing,
+    getHDResult
 } from '../services/imageProcessingService';
 
 interface ToolButtonProps {
@@ -144,7 +146,7 @@ export default function ImageProcessorScreen() {
     try {
       console.log('Starting background removal with API...');
       console.log('Selected image preview:', selectedImage.substring(0, 100) + '...');
-      
+
       const result = await removeBackground(selectedImage);
 
       if (!mounted) return; // Check if mounted after async operation
@@ -170,13 +172,13 @@ export default function ImageProcessorScreen() {
       console.error('Error removing background:', error);
       if (mounted) { // Check if mounted before showing alert
         let errorMessage = 'Failed to remove background. Please try again.';
-        
+
         if (error.message.includes('Network error')) {
           errorMessage = 'Network error. Please check your internet connection and try again.';
         } else if (error.message.includes('API Error')) {
           errorMessage = 'Service temporarily unavailable. Please try again later.';
         }
-        
+
         Alert.alert(
           'Error',
           errorMessage,
@@ -238,8 +240,77 @@ export default function ImageProcessorScreen() {
   };
 
   const handleEnhance = () => {
-    processWithType('Background Blur', blurBackground);
+    processWithType('AI Background', generateAIBackground);
   };
+
+  const handleHDProcessing = async () => {
+    if (!selectedImage) {
+      Alert.alert('No Image', 'Please select an image first');
+      return;
+    }
+    if (!mounted) return;
+
+    setIsProcessing(true);
+
+    try {
+      console.log('Starting HD background removal...');
+
+      // Submit for HD processing
+      const submitResult = await submitHDProcessing(selectedImage);
+
+      if (!mounted) return;
+
+      if (submitResult.success && submitResult.uuid) {
+        console.log('HD processing submitted with UUID:', submitResult.uuid);
+
+        // Poll for result
+        const pollForResult = async () => {
+          try {
+            const result = await getHDResult(submitResult.uuid!);
+
+            if (!mounted) return;
+
+            if (result.success && result.imageUrl) {
+              console.log('HD processing completed successfully!');
+
+              router.push({
+                pathname: '/results',
+                params: {
+                  originalImage: selectedImage,
+                  processedImage: result.imageUrl,
+                  processingType: 'HD Background Removal'
+                }
+              });
+            } else if (result.error === 'Still processing') {
+              // Continue polling
+              setTimeout(pollForResult, 2000);
+            } else {
+              throw new Error(result.error || 'HD processing failed');
+            }
+          } catch (error) {
+            console.error('Error polling for HD result:', error);
+            if (mounted) {
+              Alert.alert('Error', 'Failed to get HD processing result. Please try again.');
+              setIsProcessing(false);
+            }
+          }
+        };
+
+        // Start polling after a short delay
+        setTimeout(pollForResult, 3000);
+
+      } else {
+        throw new Error(submitResult.error || 'Failed to submit HD processing');
+      }
+    } catch (error) {
+      console.error('Error with HD processing:', error);
+      if (mounted) {
+        Alert.alert('Error', 'Failed to start HD processing. Please try again.');
+        setIsProcessing(false);
+      }
+    }
+  };
+
 
   const handleBeautify = () => {
     processWithType('Add Shadow', addShadow);

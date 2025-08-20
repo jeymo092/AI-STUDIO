@@ -89,7 +89,7 @@ export const removeBackground = async (imageUri: string): Promise<ProcessingResu
       // Handle binary image response
       const arrayBuffer = await response.arrayBuffer();
       const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-      
+
       return {
         success: true,
         imageUrl: `data:image/png;base64,${base64}`
