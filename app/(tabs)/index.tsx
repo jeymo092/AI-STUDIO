@@ -1,4 +1,3 @@
-
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
@@ -30,28 +29,28 @@ export default function HomeScreen() {
   // Check and request permissions on mount
   useEffect(() => {
     let mounted = true;
-    
+
     const initializeApp = async () => {
       try {
         if (!mounted) return;
-        
+
         console.log('Initializing permissions...');
-        
+
         // Check media library permission
         const { status: mediaStatus } = await ImagePicker.getMediaLibraryPermissionsAsync();
         console.log('Media library permission status:', mediaStatus);
-        
+
         if (mediaStatus !== 'granted' && mounted) {
           const { status: newMediaStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
           console.log('Requested media library permission:', newMediaStatus);
         }
-        
+
         if (!mounted) return;
-        
+
         // Check camera permission
         const { status: cameraStatus } = await ImagePicker.getCameraPermissionsAsync();
         console.log('Camera permission status:', cameraStatus);
-        
+
         if (cameraStatus !== 'granted' && mounted) {
           const { status: newCameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
           console.log('Requested camera permission:', newCameraStatus);
@@ -68,7 +67,7 @@ export default function HomeScreen() {
     };
 
     initializeApp();
-    
+
     return () => {
       mounted = false;
       console.log('HomeScreen cleanup');
@@ -77,8 +76,37 @@ export default function HomeScreen() {
 
   const pickImage = async () => {
     try {
+      // Check if we're on web
+      if (typeof window !== 'undefined' && window.document) {
+        // Web fallback - create file input
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+
+        input.onchange = (event) => {
+          const file = (event.target as HTMLInputElement).files?.[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const base64 = e.target?.result as string;
+              console.log('Selected image (web):', base64.substring(0, 100) + '...');
+
+              router.push({
+                pathname: '/image-processor',
+                params: { selectedImage: base64 }
+              });
+            };
+            reader.readAsDataURL(file);
+          }
+        };
+
+        input.click();
+        return;
+      }
+
+      // Native platform handling
       const hasPermission = await checkAndRequestPermissions('media');
-      
+
       if (!hasPermission) {
         Alert.alert(
           'Permission Required', 
@@ -92,7 +120,7 @@ export default function HomeScreen() {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: [ImagePicker.MediaType.Images],
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
         quality: 1,
@@ -102,7 +130,7 @@ export default function HomeScreen() {
         const imageUri = result.assets[0].uri;
         setSelectedImage(imageUri);
         console.log('Image selected successfully:', imageUri);
-        
+
         // Navigate to image processor with the selected image
         router.push({
           pathname: '/image-processor',
@@ -121,7 +149,7 @@ export default function HomeScreen() {
   const takePhoto = async () => {
     try {
       const hasPermission = await checkAndRequestPermissions('camera');
-      
+
       if (!hasPermission) {
         Alert.alert(
           'Permission Required', 
@@ -135,7 +163,7 @@ export default function HomeScreen() {
       }
 
       const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: [ImagePicker.MediaType.Images],
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
         quality: 1,
@@ -145,7 +173,7 @@ export default function HomeScreen() {
         const imageUri = result.assets[0].uri;
         setSelectedImage(imageUri);
         console.log('Photo taken successfully:', imageUri);
-        
+
         // Navigate to image processor with the taken photo
         router.push({
           pathname: '/image-processor',
@@ -214,7 +242,7 @@ export default function HomeScreen() {
           <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>New</Text>
         </View>
       )}
-      
+
       {featured ? (
         <View
           style={{
@@ -232,7 +260,7 @@ export default function HomeScreen() {
       ) : (
         <Icon size={24} color="white" style={{ marginBottom: 8 }} />
       )}
-      
+
       <Text style={{
         color: 'white',
         fontSize: featured ? 16 : 14,
@@ -283,7 +311,7 @@ export default function HomeScreen() {
           }}>
             Ai Studio
           </Text>
-          
+
           <View style={{ flexDirection: 'row', gap: 15 }}>
             <TouchableOpacity 
               activeOpacity={0.7}
@@ -297,7 +325,7 @@ export default function HomeScreen() {
               }}>
               <Sparkles size={20} color="white" />
             </TouchableOpacity>
-            
+
             <TouchableOpacity 
               activeOpacity={0.7}
               style={{
@@ -330,7 +358,7 @@ export default function HomeScreen() {
           }}>
             Beautify{'\n'}Images
           </Text>
-          
+
           <TouchableOpacity
             onPress={pickImage}
             activeOpacity={0.8}
