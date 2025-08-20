@@ -145,34 +145,75 @@ export default function ImageProcessorScreen() {
     }
   };
 
+  const processWithType = async (processingType: string) => {
+    if (!selectedImage) {
+      Alert.alert('No Image', 'Please select an image first');
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      // Simulate AI processing delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      console.log(`${processingType} processing completed successfully!`);
+
+      // Navigate to results screen with the images
+      router.push({
+        pathname: '/results',
+        params: {
+          originalImage: selectedImage,
+          processedImage: selectedImage, // In real app, this would be the processed image
+          processingType: processingType
+        }
+      });
+    } catch (error) {
+      console.error(`Error with ${processingType}:`, error);
+      Alert.alert(
+        'Error',
+        `Failed to process with ${processingType}. Please try again.`,
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const handleEnhance = () => {
-    Alert.alert('Enhance', 'Enhance feature coming soon!');
+    processWithType('AI Enhancement');
   };
 
   const handleBeautify = () => {
-    Alert.alert('AI Beautify', 'AI Beautify feature coming soon!');
+    processWithType('AI Beautify');
   };
 
   const handlePortraits = () => {
-    Alert.alert('AI Portraits', 'AI Portraits feature coming soon!');
+    processWithType('AI Portraits');
   };
 
   const handleFilters = () => {
-    Alert.alert('AI Filters', 'AI Filters feature coming soon!');
+    processWithType('AI Filters');
   };
 
   const handleClarity = () => {
-    Alert.alert('Improve Clarity', 'Improve Clarity feature coming soon!');
+    processWithType('Clarity Enhancement');
   };
 
   const handleEraser = () => {
-    Alert.alert('Eraser', 'Eraser feature coming soon!');
+    processWithType('Manual Eraser');
   };
 
-
-
   const handleAdjust = () => {
-    Alert.alert('Adjust', 'Adjust feature coming soon!');
+    processWithType('Fine Tune Adjustment');
+  };
+
+  const handleNewBackground = () => {
+    processWithType('New Background');
+  };
+
+  const handleAutoFix = () => {
+    processWithType('Auto Fix');
   };
 
   return (
@@ -305,7 +346,47 @@ export default function ImageProcessorScreen() {
           </View>
         )}
 
-                 {/* Remove BG Tools Section */}
+                 {/* AI Tools Section */}
+         <View style={{
+           paddingHorizontal: isSmallScreen ? 16 : isMediumScreen ? 24 : 32,
+           paddingBottom: isSmallScreen ? 16 : 24
+         }}>
+           <Text style={{
+             color: 'white',
+             fontSize: isSmallScreen ? 18 : isMediumScreen ? 20 : 24,
+             fontWeight: 'bold',
+             marginBottom: isSmallScreen ? 16 : 20
+           }}>
+             AI Enhancement Tools
+           </Text>
+
+           {/* Quick AI Tools */}
+           <View style={{
+             flexDirection: 'row',
+             justifyContent: 'space-between',
+             alignItems: 'center',
+             marginBottom: isSmallScreen ? 24 : 32
+           }}>
+             <ToolButton
+               icon={<Sparkles size={isSmallScreen ? 20 : isMediumScreen ? 24 : 28} color="white" />}
+               label="AI Enhance"
+               isGradient={true}
+               onPress={handleEnhance}
+             />
+             <ToolButton
+               icon={<Palette size={isSmallScreen ? 20 : isMediumScreen ? 24 : 28} color="white" />}
+               label="AI Filters"
+               onPress={handleFilters}
+             />
+             <ToolButton
+               icon={<Wand2 size={isSmallScreen ? 20 : isMediumScreen ? 24 : 28} color="white" />}
+               label="Clarity"
+               onPress={handleClarity}
+             />
+           </View>
+         </View>
+
+         {/* Remove BG Tools Section */}
          <View style={{
            paddingHorizontal: isSmallScreen ? 16 : isMediumScreen ? 24 : 32,
            paddingBottom: isSmallScreen ? 24 : 32
@@ -316,7 +397,7 @@ export default function ImageProcessorScreen() {
              fontWeight: 'bold',
              marginBottom: isSmallScreen ? 16 : 20
            }}>
-             Remove BG Features
+             Background Removal
            </Text>
 
            {/* Main Remove BG Button */}
@@ -372,7 +453,7 @@ export default function ImageProcessorScreen() {
               <ToolButton
                 icon={<Sparkles size={isSmallScreen ? 20 : isMediumScreen ? 24 : 28} color="white" />}
                 label="AI Enhance"
-                onPress={handleBeautify}
+                onPress={handleEnhance}
               />
             </View>
 
@@ -387,17 +468,17 @@ export default function ImageProcessorScreen() {
                label="New Background"
                hasBadge={true}
                badgeText="Pro"
-               onPress={handleFilters}
+               onPress={handleNewBackground}
              />
              <ToolButton
                icon={<Sparkles size={isSmallScreen ? 20 : isMediumScreen ? 24 : 28} color="white" />}
-               label="AI Enhance"
+               label="AI Beautify"
                onPress={handleBeautify}
              />
              <ToolButton
                icon={<Wand2 size={isSmallScreen ? 20 : isMediumScreen ? 24 : 28} color="white" />}
                label="Auto Fix"
-               onPress={handleEnhance}
+               onPress={handleAutoFix}
              />
            </View>
          </View>

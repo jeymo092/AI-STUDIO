@@ -129,14 +129,70 @@ export default function ResultsScreen() {
     router.back();
   };
 
-  const handleDownload = () => {
-    // Implement download functionality
-    console.log('Downloading processed image...');
+  const handleDownload = async () => {
+    try {
+      console.log('Downloading processed image...');
+      
+      if (!displayProcessedImage) {
+        Alert.alert('Error', 'No processed image to download');
+        return;
+      }
+
+      // In a real app, you would implement actual download functionality
+      // For now, we'll simulate the download process
+      Alert.alert(
+        'Download Started',
+        'Your processed image is being downloaded to your device.',
+        [
+          {
+            text: 'OK',
+            onPress: () => console.log('Download confirmed')
+          }
+        ]
+      );
+    } catch (error) {
+      console.error('Download error:', error);
+      Alert.alert('Error', 'Failed to download image');
+    }
   };
 
-  const handleShare = () => {
-    // Implement share functionality
-    console.log('Sharing processed image...');
+  const handleShare = async () => {
+    try {
+      console.log('Sharing processed image...');
+      
+      if (!displayProcessedImage) {
+        Alert.alert('Error', 'No processed image to share');
+        return;
+      }
+
+      // In a real app, you would use Expo Sharing or React Native Share
+      // For now, we'll simulate the share process
+      Alert.alert(
+        'Share Image',
+        'Choose how you want to share your processed image:',
+        [
+          {
+            text: 'Social Media',
+            onPress: () => console.log('Share to social media')
+          },
+          {
+            text: 'Save to Gallery',
+            onPress: () => console.log('Save to gallery')
+          },
+          {
+            text: 'Send Message',
+            onPress: () => console.log('Send via message')
+          },
+          {
+            text: 'Cancel',
+            style: 'cancel'
+          }
+        ]
+      );
+    } catch (error) {
+      console.error('Share error:', error);
+      Alert.alert('Error', 'Failed to share image');
+    }
   };
 
   const retryImageLoad = async () => {

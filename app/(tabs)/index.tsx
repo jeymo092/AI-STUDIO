@@ -96,7 +96,7 @@ export default function HomeScreen() {
     // Navigate to a new screen for image processing
     router.push({
       pathname: '/image-processor',
-      params: { imageUri: selectedImage }
+      params: { selectedImage: selectedImage }
     });
   };
 
