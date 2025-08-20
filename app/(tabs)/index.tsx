@@ -36,24 +36,31 @@ export default function HomeScreen() {
 
   const pickImage = async () => {
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-      if (status !== 'granted') {
-        Alert.alert('Permission needed', 'Sorry, we need camera roll permissions to make this work!');
+      const hasPermission = await checkAndRequestPermissions('media');
+      
+      if (!hasPermission) {
+        Alert.alert(
+          'Permission Required', 
+          'Camera roll access is needed to select photos. Please grant permission in your device settings.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => router.push('/permission') }
+          ]
+        );
         return;
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: [ImagePicker.MediaType.Images],
         allowsEditing: true,
         aspect: [4, 3],
         quality: 1,
       });
 
-      // Check if the operation was not cancelled and an asset was selected
       if (!result.canceled && result.assets && result.assets.length > 0) {
         setSelectedImage(result.assets[0].uri);
-        setProcessedImage(null); // Reset processed image when a new one is selected
+        setProcessedImage(null);
+        console.log('Image selected successfully:', result.assets[0].uri);
       }
     } catch (error) {
       console.error('Error picking image:', error);
@@ -63,10 +70,17 @@ export default function HomeScreen() {
 
   const takePhoto = async () => {
     try {
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
-
-      if (status !== 'granted') {
-        Alert.alert('Permission needed', 'Sorry, we need camera permissions to make this work!');
+      const hasPermission = await checkAndRequestPermissions('camera');
+      
+      if (!hasPermission) {
+        Alert.alert(
+          'Permission Required', 
+          'Camera access is needed to take photos. Please grant permission in your device settings.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => router.push('/permission') }
+          ]
+        );
         return;
       }
 
@@ -76,10 +90,10 @@ export default function HomeScreen() {
         quality: 1,
       });
 
-      // Check if the operation was not cancelled and an asset was selected
       if (!result.canceled && result.assets && result.assets.length > 0) {
         setSelectedImage(result.assets[0].uri);
-        setProcessedImage(null); // Reset processed image when a new one is taken
+        setProcessedImage(null);
+        console.log('Photo taken successfully:', result.assets[0].uri);
       }
     } catch (error) {
       console.error('Error taking photo:', error);
@@ -100,36 +114,29 @@ export default function HomeScreen() {
     });
   };
 
-  const checkCameraPermission = async () => {
-    const { status } = await ImagePicker.getCameraPermissionsAsync();
-    if (status !== 'granted') {
-      const { status: newStatus } = await ImagePicker.requestCameraPermissionsAsync();
-      if (newStatus !== 'granted') {
-        Alert.alert('Permission needed', 'Camera permission is required to take photos');
-      }
-    }
-  };
-
-  React.useEffect(() => {
-    checkCameraPermission();
-  }, []);
-
-  const checkPermissions = async () => {
+  // Check permissions only when needed, not on component mount
+  const checkAndRequestPermissions = async (type: 'media' | 'camera') => {
     try {
-      const mediaPermission = await ImagePicker.getMediaLibraryPermissionsAsync();
-      const cameraPermission = await ImagePicker.getCameraPermissionsAsync();
-
-      if (mediaPermission.status !== 'granted' || cameraPermission.status !== 'granted') {
-        router.push('/permission');
+      if (type === 'media') {
+        const { status } = await ImagePicker.getMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+          const { status: newStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+          return newStatus === 'granted';
+        }
+        return true;
+      } else {
+        const { status } = await ImagePicker.getCameraPermissionsAsync();
+        if (status !== 'granted') {
+          const { status: newStatus } = await ImagePicker.requestCameraPermissionsAsync();
+          return newStatus === 'granted';
+        }
+        return true;
       }
     } catch (error) {
       console.error('Permission check failed:', error);
+      return false;
     }
   };
-
-  React.useEffect(() => {
-    checkPermissions();
-  }, []);
 
   // This component's UI is simplified to focus on image selection and feature browsing.
   // The detailed ToolButton component from the original code is not directly used here in the same way,
