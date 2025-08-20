@@ -35,7 +35,7 @@ export default function HomeScreen() {
       try {
         if (!mounted) return;
         
-        console.log('Initializing app...');
+        console.log('Initializing permissions...');
         
         // Check media library permission
         const { status: mediaStatus } = await ImagePicker.getMediaLibraryPermissionsAsync();
@@ -92,7 +92,7 @@ export default function HomeScreen() {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaType.Images,
+        mediaTypes: [ImagePicker.MediaType.Images],
         allowsEditing: true,
         aspect: [4, 3],
         quality: 1,
@@ -135,7 +135,7 @@ export default function HomeScreen() {
       }
 
       const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaType.Images,
+        mediaTypes: [ImagePicker.MediaType.Images],
         allowsEditing: true,
         aspect: [4, 3],
         quality: 1,
@@ -187,6 +187,7 @@ export default function HomeScreen() {
   const ToolButton = ({ icon: Icon, title, onPress, featured = false, newFeature = false }) => (
     <TouchableOpacity
       onPress={onPress}
+      activeOpacity={0.7}
       style={{
         width: featured ? (width - 80) / 2 : (width - 100) / 3,
         height: featured ? 120 : 100,
@@ -284,25 +285,29 @@ export default function HomeScreen() {
           </Text>
           
           <View style={{ flexDirection: 'row', gap: 15 }}>
-            <TouchableOpacity style={{
-              width: 44,
-              height: 44,
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
-              borderRadius: 22,
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
+            <TouchableOpacity 
+              activeOpacity={0.7}
+              style={{
+                width: 44,
+                height: 44,
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                borderRadius: 22,
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
               <Sparkles size={20} color="white" />
             </TouchableOpacity>
             
-            <TouchableOpacity style={{
-              width: 44,
-              height: 44,
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
-              borderRadius: 22,
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
+            <TouchableOpacity 
+              activeOpacity={0.7}
+              style={{
+                width: 44,
+                height: 44,
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                borderRadius: 22,
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
               <Settings size={20} color="white" />
             </TouchableOpacity>
           </View>
@@ -328,6 +333,7 @@ export default function HomeScreen() {
           
           <TouchableOpacity
             onPress={pickImage}
+            activeOpacity={0.8}
             style={{
               backgroundColor: 'white',
               paddingHorizontal: 30,
@@ -442,6 +448,7 @@ export default function HomeScreen() {
           {/* Camera option */}
           <TouchableOpacity
             onPress={takePhoto}
+            activeOpacity={0.7}
             style={{
               backgroundColor: 'rgba(255, 255, 255, 0.1)',
               padding: 20,
