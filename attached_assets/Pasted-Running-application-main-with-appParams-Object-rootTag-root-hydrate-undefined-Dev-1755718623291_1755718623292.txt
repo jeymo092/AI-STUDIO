@@ -1,0 +1,57 @@
+Running application "main" with appParams:
+ 
+Object {rootTag: "#root", hydrate: undefined}
+ 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+"shadow*" style props are deprecated. Use "boxShadow".
+props.pointerEvents is deprecated. Use style.pointerEvents
+Initializing permissions...
+Media library permission status: granted
+Camera permission status: granted
+Selected image (web): data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxMSEhUTEhIWFRUVFRYVFRUVFRUVFRUXFRUXFxYVF...
+Image: style.resizeMode is deprecated. Please use props.resizeMode.
+Starting Background Removal...
+Starting background removal process...
+Image URI length: 7019
+Extracted base64 part length: 6996
+MIME type: image/jpeg
+Image prepared for upload, size: 5245
+API Response status: 200
+Response headers: image/png
+Background removal error: 
+SyntaxError {message: "Failed to execute 'json' on 'Response': Unexpected token '�', "�PNG↵↵"... is not valid JSON"}
+message: "Failed to execute 'json' on 'Response': Unexpected token '�', "�PNG↵↵"... is not valid JSON"
+stack: "SyntaxError: Unexpected token '�', "�PNG↵↵"... is not valid JSON↵ at removeBackground (https://fd9f63da-197d-4e20-bc10-f79936379624-00-3otoeaxa0sstu.spock.replit.dev/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:95088:37)↵ at async processWithType (https://fd9f63da-197d-4e20-bc10-f79936379624-00-3otoeaxa0sstu.spock.replit.dev/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:94425:24)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+
+Error with Background Removal: 
+Error {}
+message: "Failed to execute 'json' on 'Response': Unexpected token '�', "�PNG↵↵"... is not valid JSON"
+stack: "Error: Failed to execute 'json' on 'Response': Unexpected token '�', "�PNG↵↵"... is not valid JSON↵ at processWithType (https://fd9f63da-197d-4e20-bc10-f79936379624-00-3otoeaxa0sstu.spock.replit.dev/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:94438:17)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+
+Starting Face Enhancement...
+Extracted base64 part length: 6996
+MIME type: image/jpeg
+Image prepared for enhancement, size: 5245
+Enhancement API Error response: {"message":"Endpoint '\/image\/enhance\/v1' does not exist"}
+Face enhancement error: 
+Error {}
+message: "API Error: 404 - {"message":"Endpoint '\/image\/enhance\/v1' does not exist"}"
+stack: "Error: API Error: 404 - {"message":"Endpoint '\/image\/enhance\/v1' does not exist"}↵ at enhanceFace (https://fd9f63da-197d-4e20-bc10-f79936379624-00-3otoeaxa0sstu.spock.replit.dev/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:95339:15)↵ at async processWithType (https://fd9f63da-197d-4e20-bc10-f79936379624-00-3otoeaxa0sstu.spock.replit.dev/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:94425:24)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+
+Error with Face Enhancement: 
+Error {}
+
+at t.value (https://fd9f63da-197d-4e20-bc10-f79936379624-00-3otoeaxa0sstu.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://fd9f63da-197d-4e20-bc10-f79936379624-00-3otoeaxa0sstu.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://fd9f63da-197d-4e20-bc10-f79936379624-00-3otoeaxa0sstu.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://fd9f63da-197d-4e20-bc10-f79936379624-00-3otoeaxa0sstu.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
