@@ -143,6 +143,8 @@ export default function ImageProcessorScreen() {
 
     try {
       console.log('Starting background removal with API...');
+      console.log('Selected image preview:', selectedImage.substring(0, 100) + '...');
+      
       const result = await removeBackground(selectedImage);
 
       if (!mounted) return; // Check if mounted after async operation
@@ -160,14 +162,24 @@ export default function ImageProcessorScreen() {
           }
         });
       } else {
-        throw new Error(result.error || 'Failed to process image');
+        const errorMsg = result.error || 'Failed to process image';
+        console.error('Processing failed:', errorMsg);
+        throw new Error(errorMsg);
       }
     } catch (error) {
       console.error('Error removing background:', error);
       if (mounted) { // Check if mounted before showing alert
+        let errorMessage = 'Failed to remove background. Please try again.';
+        
+        if (error.message.includes('Network error')) {
+          errorMessage = 'Network error. Please check your internet connection and try again.';
+        } else if (error.message.includes('API Error')) {
+          errorMessage = 'Service temporarily unavailable. Please try again later.';
+        }
+        
         Alert.alert(
           'Error',
-          'Failed to remove background. Please try again.',
+          errorMessage,
           [{ text: 'OK' }]
         );
       }

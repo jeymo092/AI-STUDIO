@@ -32,25 +32,44 @@ export default function HomeScreen() {
     
     const initializePermissions = async () => {
       try {
+        if (!mounted) return;
+        
+        console.log('Initializing permissions...');
+        
         // Check media library permission
         const { status: mediaStatus } = await ImagePicker.getMediaLibraryPermissionsAsync();
+        console.log('Media library permission status:', mediaStatus);
+        
         if (mediaStatus !== 'granted' && mounted) {
-          await ImagePicker.requestMediaLibraryPermissionsAsync();
+          const { status: newMediaStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+          console.log('Requested media library permission:', newMediaStatus);
         }
+        
+        if (!mounted) return;
         
         // Check camera permission
         const { status: cameraStatus } = await ImagePicker.getCameraPermissionsAsync();
+        console.log('Camera permission status:', cameraStatus);
+        
         if (cameraStatus !== 'granted' && mounted) {
-          await ImagePicker.requestCameraPermissionsAsync();
+          const { status: newCameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+          console.log('Requested camera permission:', newCameraStatus);
         }
       } catch (error) {
         console.error('Permission initialization failed:', error);
+        if (mounted) {
+          console.error('Permission error details:', {
+            name: error.name,
+            message: error.message
+          });
+        }
       }
     };
 
     initializePermissions();
     
     return () => {
+      console.log('HomeScreen cleanup');
       mounted = false;
     };
   }, []);

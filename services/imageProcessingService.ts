@@ -17,33 +17,61 @@ export interface HDProcessingResult {
 // Convert image URI to base64 for API
 const imageToBase64 = async (imageUri: string): Promise<string> => {
   try {
+    console.log('Converting image to base64...');
+    console.log('Image URI type:', typeof imageUri);
+    console.log('Image URI starts with data:', imageUri.startsWith('data:image/'));
+    
     if (imageUri.startsWith('data:image/')) {
       // Already base64
-      return imageUri.split(',')[1];
+      const base64Part = imageUri.split(',')[1];
+      console.log('Extracted base64 part length:', base64Part.length);
+      return base64Part;
     }
     
     // For file URIs, we'll need to read the file
+    console.log('Fetching image from URI...');
     const response = await fetch(imageUri);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.status}`);
+    }
+    
     const blob = await response.blob();
+    console.log('Blob size:', blob.size, 'type:', blob.type);
     
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => {
-        const result = reader.result as string;
-        resolve(result.split(',')[1]);
+        try {
+          const result = reader.result as string;
+          const base64Part = result.split(',')[1];
+          console.log('FileReader conversion successful, length:', base64Part.length);
+          resolve(base64Part);
+        } catch (err) {
+          console.error('Error processing FileReader result:', err);
+          reject(err);
+        }
       };
-      reader.onerror = reject;
+      reader.onerror = (err) => {
+        console.error('FileReader error:', err);
+        reject(new Error('FileReader failed to read image'));
+      };
       reader.readAsDataURL(blob);
     });
   } catch (error) {
-    throw new Error('Failed to convert image to base64');
+    console.error('Image to base64 conversion error:', error);
+    throw new Error(`Failed to convert image to base64: ${error.message}`);
   }
 };
 
 // Remove background (matte)
 export const removeBackground = async (imageUri: string): Promise<ProcessingResult> => {
   try {
+    console.log('Starting background removal process...');
+    console.log('Image URI length:', imageUri.length);
+    
     const base64Image = await imageToBase64(imageUri);
+    console.log('Base64 conversion successful, length:', base64Image.length);
     
     const response = await fetch('https://ai-background-remover.p.rapidapi.com/image/matte/v1', {
       method: 'POST',
@@ -57,24 +85,45 @@ export const removeBackground = async (imageUri: string): Promise<ProcessingResu
       })
     });
 
+    console.log('API Response status:', response.status);
+    console.log('API Response headers:', Object.fromEntries(response.headers.entries()));
+
     if (!response.ok) {
-      throw new Error(`API Error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('API Error response:', errorText);
+      throw new Error(`API Error: ${response.status} - ${errorText}`);
     }
 
     const result = await response.json();
+    console.log('API Response result keys:', Object.keys(result));
     
     if (result.image) {
+      console.log('Background removal successful!');
       return {
         success: true,
         imageUrl: `data:image/png;base64,${result.image}`
       };
     } else {
-      throw new Error('No processed image returned');
+      console.error('No image in response:', result);
+      throw new Error('No processed image returned from API');
     }
   } catch (error) {
     console.error('Background removal error:', error);
+    
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      return {
+        success: false,
+        error: 'Network error: Unable to connect to image processing service'
+      };
+    }
+    
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    console.error('Full error details:', JSON.stringify(error, null, 2));
+    console.error('Full error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
+    
     return {
       success: false,
       error: errorMessage
