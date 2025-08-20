@@ -100,6 +100,37 @@ export default function HomeScreen() {
     });
   };
 
+  const checkCameraPermission = async () => {
+    const { status } = await ImagePicker.getCameraPermissionsAsync();
+    if (status !== 'granted') {
+      const { status: newStatus } = await ImagePicker.requestCameraPermissionsAsync();
+      if (newStatus !== 'granted') {
+        Alert.alert('Permission needed', 'Camera permission is required to take photos');
+      }
+    }
+  };
+
+  React.useEffect(() => {
+    checkCameraPermission();
+  }, []);
+
+  const checkPermissions = async () => {
+    try {
+      const mediaPermission = await ImagePicker.getMediaLibraryPermissionsAsync();
+      const cameraPermission = await ImagePicker.getCameraPermissionsAsync();
+
+      if (mediaPermission.status !== 'granted' || cameraPermission.status !== 'granted') {
+        router.push('/permission');
+      }
+    } catch (error) {
+      console.error('Permission check failed:', error);
+    }
+  };
+
+  React.useEffect(() => {
+    checkPermissions();
+  }, []);
+
   // This component's UI is simplified to focus on image selection and feature browsing.
   // The detailed ToolButton component from the original code is not directly used here in the same way,
   // but the concept of features is presented differently.

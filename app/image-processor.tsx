@@ -115,7 +115,10 @@ export default function ImageProcessorScreen() {
   const isSmallScreen = width < 375;
   const isMediumScreen = width >= 375 && width < 768;
 
-  const selectedImage = (params.selectedImage || params.imageUri) as string;
+  const selectedImage = React.useMemo(() => {
+    return (params.selectedImage || params.imageUri) as string;
+  }, [params.selectedImage, params.imageUri]);
+  
   console.log('Selected image:', selectedImage);
   console.log('All params:', params);
 
