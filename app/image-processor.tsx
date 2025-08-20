@@ -1,3 +1,4 @@
+
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
     ArrowLeft,
@@ -7,7 +8,11 @@ import {
     Settings,
     Sliders,
     Sparkles,
-    Wand2
+    Wand2,
+    Camera,
+    Zap,
+    Grid3X3,
+    Smile
 } from 'lucide-react-native';
 import React, { useState, useEffect } from 'react';
 import { Alert, Dimensions, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -27,8 +32,6 @@ import {
 interface ToolButtonProps {
   icon: React.ReactNode;
   label: string;
-  isLarge?: boolean;
-  isGradient?: boolean;
   hasBadge?: boolean;
   badgeText?: string;
   onPress?: () => void;
@@ -37,21 +40,12 @@ interface ToolButtonProps {
 const ToolButton: React.FC<ToolButtonProps> = ({
   icon,
   label,
-  isLarge = false,
-  isGradient = false,
   hasBadge = false,
   badgeText = "New",
   onPress
 }) => {
   const { width } = Dimensions.get('window');
   const isSmallScreen = width < 375;
-  const isMediumScreen = width >= 375 && width < 768;
-
-  const buttonSize = isLarge
-    ? (isSmallScreen ? 70 : isMediumScreen ? 80 : 90)
-    : (isSmallScreen ? 56 : isMediumScreen ? 64 : 72);
-
-  const fontSize = isSmallScreen ? 10 : isMediumScreen ? 12 : 14;
 
   return (
     <TouchableOpacity
@@ -59,22 +53,20 @@ const ToolButton: React.FC<ToolButtonProps> = ({
       style={{
         alignItems: 'center',
         justifyContent: 'center',
-        width: buttonSize,
-        height: buttonSize,
-        marginHorizontal: isSmallScreen ? 4 : isMediumScreen ? 8 : 12
+        flex: 1,
+        paddingVertical: isSmallScreen ? 16 : 20
       }}
     >
-      <View style={{ position: 'relative' }}>
+      <View style={{ position: 'relative', alignItems: 'center' }}>
         <View
           style={{
-            borderRadius: buttonSize / 2,
+            width: isSmallScreen ? 50 : 60,
+            height: isSmallScreen ? 50 : 60,
+            borderRadius: isSmallScreen ? 25 : 30,
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
             alignItems: 'center',
             justifyContent: 'center',
-            width: buttonSize,
-            height: buttonSize,
-            backgroundColor: isGradient ? '#8B5CF6' : '#374151',
-            borderWidth: isGradient ? 0 : 1,
-            borderColor: '#4B5563'
+            marginBottom: 8
           }}
         >
           {icon}
@@ -83,15 +75,15 @@ const ToolButton: React.FC<ToolButtonProps> = ({
           <View style={{
             position: 'absolute',
             top: -4,
-            right: -4,
-            backgroundColor: '#3B82F6',
-            borderRadius: 12,
-            paddingHorizontal: isSmallScreen ? 6 : 8,
-            paddingVertical: isSmallScreen ? 2 : 4
+            right: -8,
+            backgroundColor: '#00D4AA',
+            borderRadius: 10,
+            paddingHorizontal: 6,
+            paddingVertical: 2
           }}>
             <Text style={{
               color: 'white',
-              fontSize: isSmallScreen ? 10 : 12,
+              fontSize: 10,
               fontWeight: 'bold'
             }}>{badgeText}</Text>
           </View>
@@ -99,8 +91,7 @@ const ToolButton: React.FC<ToolButtonProps> = ({
       </View>
       <Text style={{
         color: 'white',
-        fontSize: fontSize,
-        marginTop: isSmallScreen ? 6 : 8,
+        fontSize: isSmallScreen ? 12 : 14,
         textAlign: 'center',
         fontWeight: '500'
       }}>{label}</Text>
@@ -109,88 +100,23 @@ const ToolButton: React.FC<ToolButtonProps> = ({
 };
 
 export default function ImageProcessorScreen() {
-  console.log('ImageProcessorScreen rendered!');
-  console.log('=== REMOVE BG SCREEN LOADED ===');
   const router = useRouter();
   const params = useLocalSearchParams();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [mounted, setMounted] = useState(true); // State to track if the component is mounted
-  const { width } = Dimensions.get('window');
+  const [mounted, setMounted] = useState(true);
+  const { width, height } = Dimensions.get('window');
   const isSmallScreen = width < 375;
-  const isMediumScreen = width >= 375 && width < 768;
 
   const selectedImage = React.useMemo(() => {
     return (params.selectedImage || params.imageUri) as string;
   }, [params.selectedImage, params.imageUri]);
 
-  console.log('Selected image:', selectedImage);
-  console.log('All params:', params);
-
   useEffect(() => {
-    // Set mounted to false when the component unmounts
     return () => setMounted(false);
   }, []);
 
   const handleBack = () => {
     router.back();
-  };
-
-  const processBackgroundRemoval = async () => {
-    if (!selectedImage) {
-      Alert.alert('No Image', 'Please select an image first');
-      return;
-    }
-    if (!mounted) return; // Check if mounted
-
-    setIsProcessing(true);
-
-    try {
-      console.log('Starting background removal with API...');
-      console.log('Selected image preview:', selectedImage.substring(0, 100) + '...');
-
-      const result = await removeBackground(selectedImage);
-
-      if (!mounted) return; // Check if mounted after async operation
-
-      if (result.success && result.imageUrl) {
-        console.log('Background removed successfully!');
-
-        // Navigate to results screen with the images
-        router.push({
-          pathname: '/results',
-          params: {
-            originalImage: selectedImage,
-            processedImage: result.imageUrl,
-            processingType: 'Background Removal'
-          }
-        });
-      } else {
-        const errorMsg = result.error || 'Failed to process image';
-        console.error('Processing failed:', errorMsg);
-        throw new Error(errorMsg);
-      }
-    } catch (error) {
-      console.error('Error removing background:', error);
-      if (mounted) { // Check if mounted before showing alert
-        let errorMessage = 'Failed to remove background. Please try again.';
-
-        if (error.message.includes('Network error')) {
-          errorMessage = 'Network error. Please check your internet connection and try again.';
-        } else if (error.message.includes('API Error')) {
-          errorMessage = 'Service temporarily unavailable. Please try again later.';
-        }
-
-        Alert.alert(
-          'Error',
-          errorMessage,
-          [{ text: 'OK' }]
-        );
-      }
-    } finally {
-      if (mounted) { // Check if mounted before updating state
-        setIsProcessing(false);
-      }
-    }
   };
 
   const processWithType = async (processingType: string, processingFunction: Function) => {
@@ -212,7 +138,6 @@ export default function ImageProcessorScreen() {
       if (result.success && result.imageUrl) {
         console.log(`${processingType} successful!`);
 
-        // Navigate to results screen with the images
         router.push({
           pathname: '/results',
           params: {
@@ -240,233 +165,281 @@ export default function ImageProcessorScreen() {
     }
   };
 
+  const handleRemoveBG = () => {
+    processWithType('Background Removal', removeBackground);
+  };
+
   const handleEnhance = () => {
     processWithType('Face Enhancement', enhanceFace);
   };
 
-  const handleHDProcessing = async () => {
-    if (!selectedImage) {
-      Alert.alert('No Image', 'Please select an image first');
-      return;
-    }
-    if (!mounted) return;
-
-    setIsProcessing(true);
-
-    try {
-      console.log('Starting HD background removal...');
-
-      // Submit for HD processing
-      const submitResult = await submitHDProcessing(selectedImage);
-
-      if (!mounted) return;
-
-      if (submitResult.success && submitResult.uuid) {
-        console.log('HD processing submitted with UUID:', submitResult.uuid);
-
-        // Poll for result
-        const pollForResult = async () => {
-          try {
-            const result = await getHDResult(submitResult.uuid!);
-
-            if (!mounted) return;
-
-            if (result.success && result.imageUrl) {
-              console.log('HD processing completed successfully!');
-
-              router.push({
-                pathname: '/results',
-                params: {
-                  originalImage: selectedImage,
-                  processedImage: result.imageUrl,
-                  processingType: 'HD Background Removal'
-                }
-              });
-            } else if (result.error === 'Still processing') {
-              // Continue polling
-              setTimeout(pollForResult, 2000);
-            } else {
-              throw new Error(result.error || 'HD processing failed');
-            }
-          } catch (error) {
-            console.error('Error polling for HD result:', error);
-            if (mounted) {
-              Alert.alert('Error', 'Failed to get HD processing result. Please try again.');
-              setIsProcessing(false);
-            }
-          }
-        };
-
-        // Start polling after a short delay
-        setTimeout(pollForResult, 3000);
-
-      } else {
-        throw new Error(submitResult.error || 'Failed to submit HD processing');
-      }
-    } catch (error) {
-      console.error('Error with HD processing:', error);
-      if (mounted) {
-        Alert.alert('Error', 'Failed to start HD processing. Please try again.');
-        setIsProcessing(false);
-      }
-    }
-  };
-
-
   const handleBeautify = () => {
-    processWithType('Add Shadow', addShadow);
+    processWithType('AI Beautify', addShadow);
   };
 
   const handlePortraits = () => {
-    processWithType('AI Generated Background', generateAIBackground);
+    processWithType('AI Portraits', generateAIBackground);
   };
 
   const handleFilters = () => {
-    processWithType('Background Blur', blurBackground);
+    processWithType('AI Filters', blurBackground);
   };
 
   const handleClarity = () => {
-    processWithType('Add Shadow', addShadow);
+    processWithType('Improve Clarity', submitHDProcessing);
   };
 
   const handleEraser = () => {
-    processWithType('Remove Background', removeBackground);
+    processWithType('Eraser Tool', removeBackground);
+  };
+
+  const handleEdit = () => {
+    processWithType('Edit Image', addGradientBackground);
   };
 
   const handleAdjust = () => {
-    processWithType('Background Blur', blurBackground);
-  };
-
-  const handleNewBackground = () => {
-    processWithType('Gradient Background', addGradientBackground);
-  };
-
-  const handleAutoFix = () => {
-    processWithType('Color Background', (imageUri: string) => addColorBackground(imageUri, '#ffffff'));
+    processWithType('Adjust Settings', (imageUri: string) => addColorBackground(imageUri, '#ffffff'));
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#1a0033' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#1a1a1a' }}>
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-                 {/* Header */}
-         <View style={{
-           flexDirection: 'row',
-           justifyContent: 'space-between',
-           alignItems: 'center',
-           paddingHorizontal: isSmallScreen ? 16 : isMediumScreen ? 24 : 32,
-           paddingVertical: isSmallScreen ? 12 : 16
-         }}>
-           <TouchableOpacity onPress={handleBack}>
-             <ArrowLeft size={isSmallScreen ? 20 : 24} color="white" />
-           </TouchableOpacity>
-                       <Text style={{
+        {/* Header */}
+        <View style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingHorizontal: 20,
+          paddingVertical: 16
+        }}>
+          <TouchableOpacity onPress={handleBack}>
+            <ArrowLeft size={24} color="white" />
+          </TouchableOpacity>
+          <Text style={{
+            color: 'white',
+            fontSize: 20,
+            fontWeight: 'bold',
+            letterSpacing: 1
+          }}>Ai Studio</Text>
+          <TouchableOpacity>
+            <Settings size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Hero Section */}
+        <View style={{
+          alignItems: 'center',
+          paddingHorizontal: 20,
+          paddingVertical: 40
+        }}>
+          {/* Profile Image with Split Effect */}
+          <View style={{
+            width: isSmallScreen ? 200 : 240,
+            height: isSmallScreen ? 250 : 300,
+            borderRadius: 20,
+            overflow: 'hidden',
+            marginBottom: 30,
+            position: 'relative'
+          }}>
+            {selectedImage ? (
+              <Image
+                source={{ uri: selectedImage }}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  resizeMode: 'cover'
+                }}
+              />
+            ) : (
+              <View style={{
+                width: '100%',
+                height: '100%',
+                backgroundColor: '#333',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <ImageIcon size={48} color="#666" />
+                <Text style={{ color: '#666', marginTop: 8 }}>Select Image</Text>
+              </View>
+            )}
+            
+            {/* Split Line Effect */}
+            <View style={{
+              position: 'absolute',
+              top: 0,
+              left: '50%',
+              width: 2,
+              height: '100%',
+              backgroundColor: 'rgba(255, 255, 255, 0.3)'
+            }} />
+          </View>
+
+          {/* Title and CTA */}
+          <View style={{ alignItems: 'flex-start', width: '100%', marginBottom: 20 }}>
+            <Text style={{
               color: 'white',
-              fontSize: isSmallScreen ? 18 : isMediumScreen ? 20 : 24,
-              fontWeight: 'bold'
-            }}>REMOVE BG - WORKING!</Text>
-           <TouchableOpacity>
-             <Settings size={isSmallScreen ? 20 : 24} color="white" />
-           </TouchableOpacity>
-         </View>
+              fontSize: isSmallScreen ? 28 : 32,
+              fontWeight: 'bold',
+              marginBottom: 8
+            }}>Beautify</Text>
+            <Text style={{
+              color: 'white',
+              fontSize: isSmallScreen ? 28 : 32,
+              fontWeight: 'bold',
+              marginBottom: 20
+            }}>Faces</Text>
+            
+            <TouchableOpacity
+              onPress={handleBeautify}
+              style={{
+                backgroundColor: 'white',
+                borderRadius: 25,
+                paddingHorizontal: 24,
+                paddingVertical: 12,
+                flexDirection: 'row',
+                alignItems: 'center'
+              }}
+            >
+              <Text style={{
+                color: '#1a1a1a',
+                fontSize: 16,
+                fontWeight: '600',
+                marginRight: 8
+              }}>Try Now</Text>
+              <ArrowLeft size={16} color="#1a1a1a" style={{ transform: [{ rotate: '180deg' }] }} />
+            </TouchableOpacity>
+          </View>
 
-                 {/* Image Display with Remove BG Features */}
-         <View style={{
-           paddingHorizontal: isSmallScreen ? 16 : isMediumScreen ? 24 : 32,
-           paddingVertical: isSmallScreen ? 16 : 24
-         }}>
-           <View style={{
-             width: '100%',
-             height: isSmallScreen ? 300 : isMediumScreen ? 350 : 400,
-             backgroundColor: '#1F2937',
-             borderRadius: isSmallScreen ? 12 : 16,
-             overflow: 'hidden',
-             position: 'relative'
-           }}>
-             {selectedImage ? (
-               <Image
-                 source={{ uri: selectedImage }}
-                 style={{
-                   width: '100%',
-                   height: '100%',
-                   resizeMode: 'contain'
-                 }}
-               />
-             ) : (
-               <View style={{ alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                 <ImageIcon size={isSmallScreen ? 48 : 56} color="#6B7280" />
-                 <Text style={{
-                   color: '#9CA3AF',
-                   fontSize: isSmallScreen ? 14 : 16,
-                   marginTop: 12
-                 }}>
-                   No image selected
-                 </Text>
-               </View>
-             )}
+          {/* Central Enhance Button */}
+          <View style={{
+            alignItems: 'center',
+            marginBottom: 40
+          }}>
+            <TouchableOpacity
+              onPress={handleEnhance}
+              style={{
+                width: isSmallScreen ? 80 : 100,
+                height: isSmallScreen ? 80 : 100,
+                borderRadius: isSmallScreen ? 40 : 50,
+                background: 'linear-gradient(135deg, #00D4AA 0%, #9C27B0 100%)',
+                backgroundColor: '#00D4AA',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 12,
+                shadowColor: '#00D4AA',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 12,
+                elevation: 8
+              }}
+            >
+              <Sparkles size={isSmallScreen ? 28 : 36} color="white" />
+            </TouchableOpacity>
+            <Text style={{
+              color: 'white',
+              fontSize: 16,
+              fontWeight: '600'
+            }}>Enhance</Text>
+          </View>
+        </div>
 
-             {/* Remove BG Overlay Features */}
-             <View style={{
-               position: 'absolute',
-               top: 0,
-               left: 0,
-               right: 0,
-               bottom: 0,
-               backgroundColor: 'rgba(0, 0, 0, 0.3)',
-               justifyContent: 'center',
-               alignItems: 'center'
-             }}>
-               <View style={{
-                 backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                 borderRadius: 12,
-                 padding: 20,
-                 alignItems: 'center'
-               }}>
-                 <Text style={{
-                   color: 'white',
-                   fontSize: isSmallScreen ? 16 : 18,
-                   fontWeight: 'bold',
-                   marginBottom: 8
-                 }}>
-                   Remove Background
-                 </Text>
-                 <Text style={{
-                   color: '#D1D5DB',
-                   fontSize: isSmallScreen ? 12 : 14,
-                   textAlign: 'center'
-                 }}>
-                   AI will automatically detect and remove the background
-                 </Text>
-               </View>
-             </View>
-           </View>
-         </View>
+        {/* Tool Grid */}
+        <View style={{
+          paddingHorizontal: 20,
+          paddingBottom: 40
+        }}>
+          {/* First Row */}
+          <View style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginBottom: 20
+          }}>
+            <ToolButton
+              icon={<Grid3X3 size={24} color="white" />}
+              label="Remove BG"
+              onPress={handleRemoveBG}
+            />
+            <ToolButton
+              icon={<Smile size={24} color="white" />}
+              label="AI Beautify"
+              onPress={handleBeautify}
+            />
+          </View>
+
+          {/* Second Row */}
+          <View style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginBottom: 20
+          }}>
+            <ToolButton
+              icon={<Camera size={24} color="white" />}
+              label="AI Portraits"
+              onPress={handlePortraits}
+            />
+            <ToolButton
+              icon={<Palette size={24} color="white" />}
+              label="AI Filters"
+              hasBadge={true}
+              badgeText="New"
+              onPress={handleFilters}
+            />
+            <ToolButton
+              icon={<Zap size={24} color="white" />}
+              label="Improve clarity"
+              onPress={handleClarity}
+            />
+          </View>
+
+          {/* Third Row */}
+          <View style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between'
+          }}>
+            <ToolButton
+              icon={<Eraser size={24} color="white" />}
+              label="Eraser"
+              onPress={handleEraser}
+            />
+            <ToolButton
+              icon={<Wand2 size={24} color="white" />}
+              label="Edit"
+              onPress={handleEdit}
+            />
+            <ToolButton
+              icon={<Sliders size={24} color="white" />}
+              label="Adjust"
+              onPress={handleAdjust}
+            />
+          </View>
+        </View>
 
         {/* Processing Status */}
         {isProcessing && (
           <View style={{
-            paddingHorizontal: isSmallScreen ? 16 : isMediumScreen ? 24 : 32,
-            marginBottom: isSmallScreen ? 16 : 24
+            paddingHorizontal: 20,
+            marginBottom: 20
           }}>
             <View style={{
-              backgroundColor: '#1F2937',
-              borderRadius: isSmallScreen ? 12 : 16,
-              padding: isSmallScreen ? 16 : 20,
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              borderRadius: 16,
+              padding: 20,
               flexDirection: 'row',
-              alignItems: 'center'
+              alignItems: 'center',
+              justifyContent: 'center'
             }}>
               <View style={{
-                width: isSmallScreen ? 20 : 24,
-                height: isSmallScreen ? 20 : 24,
-                borderRadius: isSmallScreen ? 10 : 12,
+                width: 20,
+                height: 20,
+                borderRadius: 10,
                 borderWidth: 2,
-                borderColor: '#3B82F6',
+                borderColor: '#00D4AA',
                 borderTopColor: 'transparent',
-                animation: 'spin 1s linear infinite'
+                marginRight: 12
               }} />
               <Text style={{
                 color: 'white',
-                fontSize: isSmallScreen ? 14 : 16,
-                marginLeft: 12,
+                fontSize: 16,
                 fontWeight: '500'
               }}>
                 Processing your image...
@@ -475,142 +448,27 @@ export default function ImageProcessorScreen() {
           </View>
         )}
 
-                 {/* AI Tools Section */}
-         <View style={{
-           paddingHorizontal: isSmallScreen ? 16 : isMediumScreen ? 24 : 32,
-           paddingBottom: isSmallScreen ? 16 : 24
-         }}>
-           <Text style={{
-             color: 'white',
-             fontSize: isSmallScreen ? 18 : isMediumScreen ? 20 : 24,
-             fontWeight: 'bold',
-             marginBottom: isSmallScreen ? 16 : 20
-           }}>
-             AI Enhancement Tools
-           </Text>
-
-           {/* Quick AI Tools */}
-           <View style={{
-             flexDirection: 'row',
-             justifyContent: 'space-between',
-             alignItems: 'center',
-             marginBottom: isSmallScreen ? 24 : 32
-           }}>
-             <ToolButton
-               icon={<Sparkles size={isSmallScreen ? 20 : isMediumScreen ? 24 : 28} color="white" />}
-               label="AI Enhance"
-               isGradient={true}
-               onPress={handleEnhance}
-             />
-             <ToolButton
-               icon={<Palette size={isSmallScreen ? 20 : isMediumScreen ? 24 : 28} color="white" />}
-               label="AI Filters"
-               onPress={handleFilters}
-             />
-             <ToolButton
-               icon={<Wand2 size={isSmallScreen ? 20 : isMediumScreen ? 24 : 28} color="white" />}
-               label="Clarity"
-               onPress={handleClarity}
-             />
-           </View>
-         </View>
-
-         {/* Remove BG Tools Section */}
-         <View style={{
-           paddingHorizontal: isSmallScreen ? 16 : isMediumScreen ? 24 : 32,
-           paddingBottom: isSmallScreen ? 24 : 32
-         }}>
-           <Text style={{
-             color: 'white',
-             fontSize: isSmallScreen ? 18 : isMediumScreen ? 20 : 24,
-             fontWeight: 'bold',
-             marginBottom: isSmallScreen ? 16 : 20
-           }}>
-             Background Removal
-           </Text>
-
-           {/* Main Remove BG Button */}
-           <View style={{
-             marginBottom: isSmallScreen ? 24 : 32,
-             alignItems: 'center'
-           }}>
-             <TouchableOpacity
-               onPress={processBackgroundRemoval}
-               style={{
-                 width: '100%',
-                 backgroundColor: '#8B5CF6',
-                 borderRadius: isSmallScreen ? 16 : 20,
-                 paddingVertical: isSmallScreen ? 18 : 22,
-                 alignItems: 'center',
-                 justifyContent: 'center',
-                 flexDirection: 'row',
-                 shadowColor: '#8B5CF6',
-                 shadowOffset: { width: 0, height: 4 },
-                 shadowOpacity: 0.3,
-                 shadowRadius: 12,
-                 elevation: 8
-               }}
-             >
-               <ImageIcon size={isSmallScreen ? 24 : 28} color="white" style={{ marginRight: 12 }} />
-               <Text style={{
-                 color: 'white',
-                 fontSize: isSmallScreen ? 18 : 20,
-                 fontWeight: 'bold'
-               }}>
-                 {isProcessing ? "Processing..." : "Remove Background"}
-               </Text>
-             </TouchableOpacity>
-           </View>
-
-                       {/* Additional Remove BG Options */}
-            <View style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: isSmallScreen ? 24 : 32
-            }}>
-              <ToolButton
-                icon={<Eraser size={isSmallScreen ? 20 : isMediumScreen ? 24 : 28} color="white" />}
-                label="Manual Erase"
-                onPress={handleEraser}
-              />
-              <ToolButton
-                icon={<Sliders size={isSmallScreen ? 20 : isMediumScreen ? 24 : 28} color="white" />}
-                label="Fine Tune"
-                onPress={handleAdjust}
-              />
-              <ToolButton
-                icon={<Sparkles size={isSmallScreen ? 20 : isMediumScreen ? 24 : 28} color="white" />}
-                label="AI Enhance"
-                onPress={handleEnhance}
-              />
-            </View>
-
-           {/* Background Options */}
-           <View style={{
-             flexDirection: 'row',
-             justifyContent: 'space-between',
-             alignItems: 'center'
-           }}>
-             <ToolButton
-               icon={<Palette size={isSmallScreen ? 20 : isMediumScreen ? 24 : 28} color="white" />}
-               label="New Background"
-               hasBadge={true}
-               badgeText="Pro"
-               onPress={handleNewBackground}
-             />
-             <ToolButton
-               icon={<Sparkles size={isSmallScreen ? 20 : isMediumScreen ? 24 : 28} color="white" />}
-               label="AI Beautify"
-               onPress={handleBeautify}
-             />
-             <ToolButton
-               icon={<Wand2 size={isSmallScreen ? 20 : isMediumScreen ? 24 : 28} color="white" />}
-               label="Auto Fix"
-               onPress={handleAutoFix}
-             />
-           </View>
-         </View>
+        {/* Bottom Indicator */}
+        <View style={{
+          flexDirection: 'row',
+          justifyContent: 'center',
+          paddingBottom: 20
+        }}>
+          <View style={{
+            width: 40,
+            height: 4,
+            backgroundColor: 'rgba(255, 255, 255, 0.3)',
+            borderRadius: 2,
+            marginHorizontal: 4
+          }} />
+          <View style={{
+            width: 20,
+            height: 4,
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            borderRadius: 2,
+            marginHorizontal: 4
+          }} />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
