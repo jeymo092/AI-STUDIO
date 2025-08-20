@@ -56,20 +56,19 @@ export const removeBackground = async (imageUri: string): Promise<ProcessingResu
     console.log('Starting background removal process...');
     console.log('Image URI length:', imageUri.length);
 
-    // Use the same approach as other functions for consistency
-    const base64Image = await imageToBase64(imageUri);
-    console.log('Image converted to base64, length:', base64Image.length);
+    const imageBlob = await prepareImageForUpload(imageUri);
+    console.log('Image prepared for upload, size:', imageBlob.size);
+
+    const formData = new FormData();
+    formData.append('image', imageBlob, 'image.jpg');
 
     const response = await fetch('https://ai-background-remover.p.rapidapi.com/image/matte/v1', {
       method: 'POST',
       headers: {
         'x-rapidapi-key': RAPIDAPI_KEY,
         'x-rapidapi-host': RAPIDAPI_HOST,
-        'Content-Type': 'application/x-www-form-urlencoded'
       },
-      body: new URLSearchParams({
-        image: base64Image
-      })
+      body: formData
     });
 
     console.log('API Response status:', response.status);
@@ -336,22 +335,25 @@ export const generateAIBackground = async (imageUri: string, prompt?: string): P
 // Enhance face
 export const enhanceFace = async (imageUri: string): Promise<ProcessingResult> => {
   try {
-    const base64Image = await imageToBase64(imageUri);
+    const imageBlob = await prepareImageForUpload(imageUri);
+    console.log('Image prepared for enhancement, size:', imageBlob.size);
+
+    const formData = new FormData();
+    formData.append('image', imageBlob, 'image.jpg');
 
     const response = await fetch('https://ai-background-remover.p.rapidapi.com/image/enhance/v1', {
       method: 'POST',
       headers: {
         'x-rapidapi-key': RAPIDAPI_KEY,
         'x-rapidapi-host': RAPIDAPI_HOST,
-        'Content-Type': 'application/x-www-form-urlencoded'
       },
-      body: new URLSearchParams({
-        image: base64Image
-      })
+      body: formData
     });
 
     if (!response.ok) {
-      throw new Error(`API Error: ${response.status}`);
+      const errorText = await response.text();
+      console.log('Enhancement API Error response:', errorText);
+      throw new Error(`API Error: ${response.status} - ${errorText}`);
     }
 
     const result = await response.json();
