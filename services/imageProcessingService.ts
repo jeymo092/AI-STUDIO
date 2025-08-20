@@ -139,6 +139,10 @@ const imageToBase64 = async (imageUri: string): Promise<string> => {
     if (imageUri.startsWith('data:')) {
       // Extract base64 part
       const [, base64Part] = imageUri.split(',');
+      if (!base64Part) {
+        throw new Error('Invalid data URI format');
+      }
+      console.log('Extracted base64 length:', base64Part.length);
       return base64Part;
     }
 
@@ -146,16 +150,18 @@ const imageToBase64 = async (imageUri: string): Promise<string> => {
     const base64 = await FileSystem.readAsStringAsync(imageUri, {
       encoding: FileSystem.EncodingType.Base64,
     });
+    console.log('File converted to base64, length:', base64.length);
     return base64;
   } catch (error) {
     console.error('Error converting image to base64:', error);
-    throw new Error('Failed to convert image to base64');
+    throw new Error(`Failed to convert image to base64: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
 
 // Blur background
 export const blurBackground = async (imageUri: string): Promise<ProcessingResult> => {
   try {
+    console.log('Starting blur background processing...');
     const base64Image = await imageToBase64(imageUri);
 
     const response = await fetch('https://ai-background-remover.p.rapidapi.com/image/blur/v1', {
@@ -170,13 +176,18 @@ export const blurBackground = async (imageUri: string): Promise<ProcessingResult
       })
     });
 
+    console.log('Blur API response status:', response.status);
+
     if (!response.ok) {
-      throw new Error(`API Error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Blur API Error response:', errorText);
+      throw new Error(`API Error: ${response.status} - ${errorText}`);
     }
 
     const result = await response.json();
 
     if (result.image) {
+      console.log('Blur processing successful!');
       return {
         success: true,
         imageUrl: `data:image/jpeg;base64,${result.image}`
@@ -188,7 +199,7 @@ export const blurBackground = async (imageUri: string): Promise<ProcessingResult
     console.error('Background blur error:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Blur processing failed'
     };
   }
 };
@@ -282,7 +293,9 @@ export const addColorBackground = async (imageUri: string, color?: string): Prom
 // Add shadow
 export const addShadow = async (imageUri: string): Promise<ProcessingResult> => {
   try {
+    console.log('Starting shadow processing...');
     const base64Image = await imageToBase64(imageUri);
+    console.log('Image converted to base64, length:', base64Image.length);
 
     const response = await fetch('https://ai-background-remover.p.rapidapi.com/image/shadow/v1', {
       method: 'POST',
@@ -296,13 +309,21 @@ export const addShadow = async (imageUri: string): Promise<ProcessingResult> => 
       })
     });
 
+    console.log('Shadow API response status:', response.status);
+
     if (!response.ok) {
-      throw new Error(`API Error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Shadow API Error response:', errorText);
+      
+      // If shadow fails, try blur as fallback
+      console.log('Shadow failed, trying blur as fallback...');
+      return await blurBackground(imageUri);
     }
 
     const result = await response.json();
 
     if (result.image) {
+      console.log('Shadow processing successful!');
       return {
         success: true,
         imageUrl: `data:image/png;base64,${result.image}`
@@ -312,10 +333,18 @@ export const addShadow = async (imageUri: string): Promise<ProcessingResult> => 
     }
   } catch (error) {
     console.error('Shadow error:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
-    };
+    
+    // Try blur as fallback
+    try {
+      console.log('Shadow failed, trying blur as fallback...');
+      return await blurBackground(imageUri);
+    } catch (fallbackError) {
+      console.error('Fallback blur also failed:', fallbackError);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Shadow processing failed'
+      };
+    }
   }
 };
 
@@ -365,12 +394,40 @@ export const generateAIBackground = async (imageUri: string, prompt?: string): P
   }
 };
 
-// Enhance face - using shadow effect as enhancement since enhance endpoint doesn't exist
+// Enhance face - using multiple fallback strategies
 export const enhanceFace = async (imageUri: string): Promise<ProcessingResult> => {
   try {
-    console.log('Using shadow effect as face enhancement...');
-    // Use the shadow endpoint as an alternative enhancement
-    return await addShadow(imageUri);
+    console.log('Starting face enhancement...');
+    
+    // Try gradient background first as it tends to be more reliable
+    console.log('Trying gradient enhancement...');
+    const gradientResult = await addGradientBackground(imageUri);
+    
+    if (gradientResult.success) {
+      console.log('Gradient enhancement successful!');
+      return gradientResult;
+    }
+    
+    // If gradient fails, try color background
+    console.log('Gradient failed, trying color background...');
+    const colorResult = await addColorBackground(imageUri, '#f0f0f0');
+    
+    if (colorResult.success) {
+      console.log('Color background enhancement successful!');
+      return colorResult;
+    }
+    
+    // If both fail, try blur
+    console.log('Color background failed, trying blur...');
+    const blurResult = await blurBackground(imageUri);
+    
+    if (blurResult.success) {
+      console.log('Blur enhancement successful!');
+      return blurResult;
+    }
+    
+    throw new Error('All enhancement methods failed');
+    
   } catch (error) {
     console.error('Face enhancement error:', error);
     return {
