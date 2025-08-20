@@ -116,7 +116,12 @@ export default function ImageProcessorScreen() {
   }, []);
 
   const handleBack = () => {
-    router.back();
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      // Fallback to home screen if no previous screen
+      router.push('/(tabs)/');
+    }
   };
 
   const processWithType = async (processingType: string, processingFunction: Function) => {

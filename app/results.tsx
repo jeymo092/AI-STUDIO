@@ -126,7 +126,12 @@ export default function ResultsScreen() {
   });
 
   const handleBack = () => {
-    router.back();
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      // Fallback to home screen if no previous screen
+      router.push('/(tabs)/');
+    }
   };
 
   const handleDownload = async () => {
