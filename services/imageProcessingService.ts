@@ -1,3 +1,5 @@
+import * as FileSystem from 'expo-file-system';
+
 const RAPIDAPI_KEY = 'dc3a2f3260msh0a744cd1233f1a2p1def2ejsn248c50c8febb';
 const RAPIDAPI_HOST = 'ai-background-remover.p.rapidapi.com';
 
@@ -95,6 +97,26 @@ export const removeBackground = async (imageUri: string): Promise<ProcessingResu
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
     };
+  }
+};
+
+// Helper function to convert image URI to base64 string
+const imageToBase64 = async (imageUri: string): Promise<string> => {
+  try {
+    if (imageUri.startsWith('data:')) {
+      // Extract base64 part
+      const [, base64Part] = imageUri.split(',');
+      return base64Part;
+    }
+
+    // If it's a file URI, read and convert to base64
+    const base64 = await FileSystem.readAsStringAsync(imageUri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    return base64;
+  } catch (error) {
+    console.error('Error converting image to base64:', error);
+    throw new Error('Failed to convert image to base64');
   }
 };
 
