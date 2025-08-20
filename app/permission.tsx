@@ -38,7 +38,7 @@ export default function PermissionScreen() {
   const openPhotoGallery = async () => {
     try {
              const result = await ImagePicker.launchImageLibraryAsync({
-         mediaTypes: ImagePicker.MediaTypeOptions.Images,
+         mediaTypes: [ImagePicker.MediaType.Images],
          allowsEditing: false,
          quality: 1,
        });
