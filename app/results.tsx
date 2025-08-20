@@ -138,18 +138,33 @@ export default function ResultsScreen() {
         return;
       }
 
-      // In a real app, you would implement actual download functionality
-      // For now, we'll simulate the download process
-      Alert.alert(
-        'Download Started',
-        'Your processed image is being downloaded to your device.',
-        [
-          {
-            text: 'OK',
-            onPress: () => console.log('Download confirmed')
-          }
-        ]
-      );
+      // For web, create a download link
+      if (displayProcessedImage.startsWith('data:')) {
+        const link = document.createElement('a');
+        link.href = displayProcessedImage;
+        link.download = `processed-image-${Date.now()}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        Alert.alert('Success', 'Image downloaded successfully!');
+      } else {
+        // For file URIs, try to save to device
+        try {
+          const fileName = `processed-image-${Date.now()}.png`;
+          const newPath = `${FileSystem.documentDirectory}${fileName}`;
+          
+          await FileSystem.copyAsync({
+            from: displayProcessedImage,
+            to: newPath
+          });
+          
+          Alert.alert('Success', `Image saved to: ${fileName}`);
+        } catch (saveError) {
+          console.error('Save error:', saveError);
+          Alert.alert('Error', 'Could not save image to device');
+        }
+      }
     } catch (error) {
       console.error('Download error:', error);
       Alert.alert('Error', 'Failed to download image');
@@ -165,30 +180,63 @@ export default function ResultsScreen() {
         return;
       }
 
-      // In a real app, you would use Expo Sharing or React Native Share
-      // For now, we'll simulate the share process
-      Alert.alert(
-        'Share Image',
-        'Choose how you want to share your processed image:',
-        [
-          {
-            text: 'Social Media',
-            onPress: () => console.log('Share to social media')
-          },
-          {
-            text: 'Save to Gallery',
-            onPress: () => console.log('Save to gallery')
-          },
-          {
-            text: 'Send Message',
-            onPress: () => console.log('Send via message')
-          },
-          {
-            text: 'Cancel',
-            style: 'cancel'
-          }
-        ]
-      );
+      // For web, use Web Share API if available, otherwise copy to clipboard
+      if (typeof navigator !== 'undefined' && navigator.share) {
+        // Convert data URL to blob for sharing
+        if (displayProcessedImage.startsWith('data:')) {
+          const response = await fetch(displayProcessedImage);
+          const blob = await response.blob();
+          const file = new File([blob], 'processed-image.png', { type: 'image/png' });
+          
+          await navigator.share({
+            title: 'Processed Image',
+            text: 'Check out this image I processed!',
+            files: [file]
+          });
+        }
+      } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        // Fallback: copy image data URL to clipboard
+        await navigator.clipboard.writeText(displayProcessedImage);
+        Alert.alert('Copied', 'Image data copied to clipboard!');
+      } else {
+        // Final fallback: show share options
+        Alert.alert(
+          'Share Image',
+          'Choose how you want to share your processed image:',
+          [
+            {
+              text: 'Copy Image Data',
+              onPress: async () => {
+                try {
+                  // Try to copy the data URL
+                  if (typeof navigator !== 'undefined' && navigator.clipboard) {
+                    await navigator.clipboard.writeText(displayProcessedImage);
+                    Alert.alert('Success', 'Image data copied to clipboard!');
+                  } else {
+                    console.log('Image data:', displayProcessedImage);
+                    Alert.alert('Info', 'Image data logged to console');
+                  }
+                } catch (error) {
+                  console.error('Copy error:', error);
+                  Alert.alert('Error', 'Failed to copy image data');
+                }
+              }
+            },
+            {
+              text: 'Open in New Tab',
+              onPress: () => {
+                if (typeof window !== 'undefined') {
+                  window.open(displayProcessedImage, '_blank');
+                }
+              }
+            },
+            {
+              text: 'Cancel',
+              style: 'cancel'
+            }
+          ]
+        );
+      }
     } catch (error) {
       console.error('Share error:', error);
       Alert.alert('Error', 'Failed to share image');
