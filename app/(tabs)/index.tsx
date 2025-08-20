@@ -13,7 +13,7 @@ import {
   Wand2,
   Zap
 } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Alert, Dimensions, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -116,9 +116,10 @@ export default function HomeScreen() {
   const isSmallScreen = width < 375;
   const isMediumScreen = width >= 375 && width < 768;
   const isLargeScreen = width >= 768;
+  const [isMounted, setIsMounted] = useState(true);
 
   // Handle parameters when returning from permission page
-  React.useEffect(() => {
+  useEffect(() => {
     if (params.selectedImage && params.triggerBackgroundRemoval === 'true') {
       const imageUri = params.selectedImage as string;
       setSelectedImage(imageUri);
@@ -147,23 +148,34 @@ export default function HomeScreen() {
   };
 
   const pickImage = async () => {
+    if (!isMounted) return;
+
     const hasPermission = await requestPermissions();
     if (!hasPermission) return;
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: [ImagePicker.MediaType.Images],
-      allowsEditing: false,
-      quality: 1,
-    });
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: false,
+        quality: 1,
+      });
 
-    if (!result.canceled && result.assets[0]) {
-      setSelectedImage(result.assets[0].uri);
-      setProcessedImage(null); // Reset processed image
-      console.log('Image selected:', result.assets[0].uri);
+      if (!result.canceled && result.assets[0] && isMounted) {
+        setSelectedImage(result.assets[0].uri);
+        setProcessedImage(null); // Reset processed image
+        console.log('Image selected:', result.assets[0].uri);
+      }
+    } catch (error) {
+      if (isMounted) {
+        console.error('Error picking image:', error);
+        Alert.alert('Error', 'Failed to pick image');
+      }
     }
   };
 
   const takePhoto = async () => {
+    if (!isMounted) return;
+
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert(
@@ -174,19 +186,26 @@ export default function HomeScreen() {
       return;
     }
 
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: false,
-      quality: 1,
-    });
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: false,
+        quality: 1,
+      });
 
-    if (!result.canceled && result.assets[0]) {
-      setSelectedImage(result.assets[0].uri);
-      setProcessedImage(null); // Reset processed image
-      console.log('Photo taken:', result.assets[0].uri);
+      if (!result.canceled && result.assets[0] && isMounted) {
+        setSelectedImage(result.assets[0].uri);
+        setProcessedImage(null); // Reset processed image
+        console.log('Photo taken:', result.assets[0].uri);
+      }
+    } catch (error) {
+      if (isMounted) {
+        console.error('Error taking photo:', error);
+        Alert.alert('Error', 'Failed to take photo');
+      }
     }
   };
 
-    const removeBackground = async () => {
+  const removeBackground = async () => {
     console.log('Remove BG button pressed!');
     console.log('Starting Remove BG process...');
 
@@ -204,7 +223,7 @@ export default function HomeScreen() {
           quality: 1,
         });
 
-        if (!result.canceled && result.assets[0]) {
+        if (!result.canceled && result.assets[0] && isMounted) {
           setSelectedImage(result.assets[0].uri);
           setProcessedImage(null);
           console.log('Image selected:', result.assets[0].uri);
@@ -220,11 +239,14 @@ export default function HomeScreen() {
       }
     } catch (error) {
       console.error('Error in removeBackground:', error);
-      Alert.alert('Error', 'Something went wrong. Please try again.');
+      if (isMounted) {
+        Alert.alert('Error', 'Something went wrong. Please try again.');
+      }
     }
   };
 
   const processBackgroundRemoval = async (imageUri: string) => {
+    if (!isMounted) return;
     setIsProcessing(true);
 
     try {
@@ -253,15 +275,26 @@ export default function HomeScreen() {
       });
     } catch (error) {
       console.error('Error removing background:', error);
-      Alert.alert(
-        'Error',
-        'Failed to remove background. Please try again.',
-        [{ text: 'OK' }]
-      );
+      if (isMounted) {
+        Alert.alert(
+          'Error',
+          'Failed to remove background. Please try again.',
+          [{ text: 'OK' }]
+        );
+      }
     } finally {
-      setIsProcessing(false);
+      if (isMounted) {
+        setIsProcessing(false);
+      }
     }
   };
+
+  // Cleanup function to set isMounted to false when the component unmounts
+  useEffect(() => {
+    return () => {
+      setIsMounted(false);
+    };
+  }, []);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'black' }}>
