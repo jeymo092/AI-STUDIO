@@ -412,18 +412,26 @@ export default function ResultsScreen() {
              <View style={{ 
                width: '100%', 
                height: isSmallScreen ? 200 : 250, 
-               backgroundColor: '#8B5CF6', 
+               backgroundColor: 'transparent', 
                borderRadius: 16, 
                overflow: 'hidden',
                borderWidth: 1,
-               borderColor: '#A78BFA'
+               borderColor: '#A78BFA',
+               // Add a checkered pattern background to show transparency
+               backgroundImage: 'linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%)',
+               backgroundSize: '20px 20px',
+               backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px'
              }}>
                {isLoading ? (
                  <View style={{ 
                    flex: 1, 
                    alignItems: 'center', 
                    justifyContent: 'center',
-                   backgroundColor: '#A78BFA'
+                   backgroundColor: 'transparent',
+                   // Add a checkered pattern background to show transparency
+                   backgroundImage: 'linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%)',
+                   backgroundSize: '20px 20px',
+                   backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px'
                  }}>
                    <Animated.View style={{ transform: [{ rotate: spin }] }}>
                      <Loader2 size={48} color="white" />
@@ -465,7 +473,11 @@ export default function ResultsScreen() {
                     flex: 1, 
                     alignItems: 'center', 
                     justifyContent: 'center',
-                    backgroundColor: '#A78BFA'
+                    backgroundColor: 'transparent',
+                    // Add a checkered pattern background to show transparency
+                    backgroundImage: 'linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%)',
+                    backgroundSize: '20px 20px',
+                    backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px'
                   }}>
                     <Text style={{ color: 'white', fontSize: 16 }}>
                       {processedImageError ? 'Failed to load processed image' : 'No processed image'}
