@@ -1,0 +1,43 @@
+Running application "main" with appParams:
+ 
+Object {rootTag: "#root", hydrate: undefined}
+ 
+Development-level warnings: ON.
+Performance optimizations: OFF.
+"shadow*" style props are deprecated. Use "boxShadow".
+props.pointerEvents is deprecated. Use style.pointerEvents
+Initializing permissions...
+Media library permission status: granted
+Camera permission status: granted
+Error picking image: 
+TypeError {}
+message: "Cannot read properties of undefined (reading 'Images')"
+stack: "TypeError: Cannot read properties of undefined (reading 'Images')↵ at pickImage (https://fd9f63da-197d-4e20-bc10-f79936379624-00-3otoeaxa0sstu.spock.replit.dev/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:92854:46)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+
+Error picking image: 
+TypeError {}
+message: "Cannot read properties of undefined (reading 'Images')"
+stack: "TypeError: Cannot read properties of undefined (reading 'Images')↵ at pickImage (https://fd9f63da-197d-4e20-bc10-f79936379624-00-3otoeaxa0sstu.spock.replit.dev/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:92854:46)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+
+Error picking image: 
+TypeError {}
+message: "Cannot read properties of undefined (reading 'Images')"
+stack: "TypeError: Cannot read properties of undefined (reading 'Images')↵ at pickImage (https://fd9f63da-197d-4e20-bc10-f79936379624-00-3otoeaxa0sstu.spock.replit.dev/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:92854:46)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+
+Error picking image: 
+TypeError {}
+message: "Cannot read properties of undefined (reading 'Images')"
+stack: "TypeError: Cannot read properties of undefined (reading 'Images')↵ at pickImage (https://fd9f63da-197d-4e20-bc10-f79936379624-00-3otoeaxa0sstu.spock.replit.dev/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:92854:46)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+
