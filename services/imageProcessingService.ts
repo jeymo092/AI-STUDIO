@@ -75,6 +75,7 @@ export const removeBackground = async (imageUri: string): Promise<ProcessingResu
     });
 
     console.log('API Response status:', response.status);
+    console.log('Response headers:', response.headers.get('content-type'));
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -82,15 +83,33 @@ export const removeBackground = async (imageUri: string): Promise<ProcessingResu
       throw new Error(`API Error: ${response.status} - ${errorText}`);
     }
 
-    const result = await response.json();
-
-    if (result.image) {
+    // Check if response is binary image data
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('image')) {
+      // Handle binary image response
+      const arrayBuffer = await response.arrayBuffer();
+      const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+      
       return {
         success: true,
-        imageUrl: `data:image/png;base64,${result.image}`
+        imageUrl: `data:image/png;base64,${base64}`
       };
     } else {
-      throw new Error('No processed image returned');
+      // Try to parse as JSON
+      try {
+        const result = await response.json();
+        if (result.image) {
+          return {
+            success: true,
+            imageUrl: `data:image/png;base64,${result.image}`
+          };
+        } else {
+          throw new Error('No processed image returned');
+        }
+      } catch (jsonError) {
+        console.error('Failed to parse JSON response:', jsonError);
+        throw new Error('Invalid response format from API');
+      }
     }
   } catch (error) {
     console.error('Background removal error:', error);
