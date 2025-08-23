@@ -16,8 +16,9 @@ import {
   Settings
 } from 'lucide-react-native';
 import React, { useState, useEffect } from 'react';
-import { Alert, Dimensions, ScrollView, Text, TouchableOpacity, View, ImageBackground } from 'react-native';
+import { Alert, Dimensions, ScrollView, Text, TouchableOpacity, View, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { PermissionService } from '../../services/permissionService';
 
 const { width, height } = Dimensions.get('window');
 const isSmallScreen = width < 768; // Define a breakpoint for smaller screens
@@ -27,11 +28,58 @@ export default function HomeScreen() {
   const params = useLocalSearchParams();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  // Mock function for handling processing type selection
-  const handleProcessingTypeSelect = (type: string) => {
+  // Handle processing type selection with image picker
+  const handleProcessingTypeSelect = async (type: string) => {
     console.log(`Selected processing type: ${type}`);
-    // In a real app, you would navigate to a specific processing screen or show a modal
-    Alert.alert('Processing Type Selected', `You chose: ${type}`);
+    
+    try {
+      // First, pick an image
+      const hasPermission = await checkAndRequestPermissions('media');
+      
+      if (!hasPermission) {
+        const permissionMessage = Platform.OS === 'android' 
+          ? 'Storage permission is needed to select photos for processing.'
+          : 'Photo library access is needed to select photos for processing.';
+          
+        Alert.alert(
+          'Permission Required', 
+          permissionMessage,
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Grant Permission', onPress: async () => {
+              const granted = await checkAndRequestPermissions('media');
+              if (granted) {
+                handleProcessingTypeSelect(type);
+              }
+            }}
+          ]
+        );
+        return;
+      }
+
+      console.log('Launching image library for processing type:', type);
+      const result = await ImagePicker.launchImageLibraryAsync(
+        PermissionService.getOptimalImagePickerConfig()
+      );
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const imageUri = result.assets[0].uri;
+        console.log('Image selected for processing:', type);
+
+        // Navigate to image processor with the selected image and processing type
+        router.push({
+          pathname: '/image-processor',
+          params: { 
+            selectedImage: imageUri,
+            imageUri: imageUri,
+            processingType: type
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error selecting image for processing:', error);
+      Alert.alert('Error', 'Failed to select image. Please try again.');
+    }
   };
 
   // Check and request permissions on mount
@@ -42,33 +90,63 @@ export default function HomeScreen() {
       try {
         if (!mounted) return;
 
-        console.log('Initializing permissions...');
+        console.log('Initializing permissions for platform:', Platform.OS);
 
-        // Check media library permission
-        const { status: mediaStatus } = await ImagePicker.getMediaLibraryPermissionsAsync();
-        console.log('Media library permission status:', mediaStatus);
+        // For Android, we need to be more explicit about permissions
+        if (Platform.OS === 'android') {
+          // Check media library permission
+          const { status: mediaStatus } = await ImagePicker.getMediaLibraryPermissionsAsync();
+          console.log('Media library permission status:', mediaStatus);
 
-        if (mediaStatus !== 'granted' && mounted) {
-          const { status: newMediaStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-          console.log('Requested media library permission:', newMediaStatus);
-        }
+          if (mediaStatus !== 'granted' && mounted) {
+            console.log('Requesting media library permission...');
+            const { status: newMediaStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            console.log('Media library permission result:', newMediaStatus);
+            
+            if (newMediaStatus !== 'granted') {
+              console.warn('Media library permission denied');
+            }
+          }
 
-        if (!mounted) return;
+          if (!mounted) return;
 
-        // Check camera permission
-        const { status: cameraStatus } = await ImagePicker.getCameraPermissionsAsync();
-        console.log('Camera permission status:', cameraStatus);
+          // Check camera permission
+          const { status: cameraStatus } = await ImagePicker.getCameraPermissionsAsync();
+          console.log('Camera permission status:', cameraStatus);
 
-        if (cameraStatus !== 'granted' && mounted) {
-          const { status: newCameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
-          console.log('Requested camera permission:', newCameraStatus);
+          if (cameraStatus !== 'granted' && mounted) {
+            console.log('Requesting camera permission...');
+            const { status: newCameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+            console.log('Camera permission result:', newCameraStatus);
+            
+            if (newCameraStatus !== 'granted') {
+              console.warn('Camera permission denied');
+            }
+          }
+        } else {
+          // iOS permission handling
+          const [mediaStatus, cameraStatus] = await Promise.all([
+            ImagePicker.getMediaLibraryPermissionsAsync(),
+            ImagePicker.getCameraPermissionsAsync()
+          ]);
+
+          console.log('iOS - Media status:', mediaStatus.status, 'Camera status:', cameraStatus.status);
+
+          if (mediaStatus.status !== 'granted') {
+            await ImagePicker.requestMediaLibraryPermissionsAsync();
+          }
+          
+          if (cameraStatus.status !== 'granted') {
+            await ImagePicker.requestCameraPermissionsAsync();
+          }
         }
       } catch (error) {
         console.error('App initialization failed:', error);
         if (mounted) {
           console.error('Initialization error details:', {
             name: error?.name || 'Unknown',
-            message: error?.message || 'Unknown error'
+            message: error?.message || 'Unknown error',
+            platform: Platform.OS
           });
         }
       }
@@ -84,8 +162,10 @@ export default function HomeScreen() {
 
   const pickImage = async () => {
     try {
+      console.log('Pick image started on platform:', Platform.OS);
+      
       // Check if we're on web
-      if (typeof window !== 'undefined' && window.document) {
+      if (Platform.OS === 'web') {
         // Web fallback - create file input
         const input = document.createElement('input');
         input.type = 'file';
@@ -112,13 +192,17 @@ export default function HomeScreen() {
         return;
       }
 
-      // Native platform handling
+      // Native platform handling (Android/iOS)
       const hasPermission = await checkAndRequestPermissions('media');
 
       if (!hasPermission) {
+        const permissionMessage = Platform.OS === 'android' 
+          ? 'Storage permission is needed to select photos. Please grant permission in your device settings.'
+          : 'Photo library access is needed to select photos. Please grant permission in your device settings.';
+          
         Alert.alert(
           'Permission Required', 
-          'Camera roll access is needed to select photos. Please grant permission in your device settings.',
+          permissionMessage,
           [
             { text: 'Cancel', style: 'cancel' },
             { text: 'Open Settings', onPress: () => router.push('/permission') }
@@ -127,17 +211,17 @@ export default function HomeScreen() {
         return;
       }
 
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 1,
-      });
+      console.log('Launching image library...');
+      const result = await ImagePicker.launchImageLibraryAsync(
+        PermissionService.getOptimalImagePickerConfig()
+      );
+
+      console.log('Image picker result:', result.canceled ? 'canceled' : 'success');
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const imageUri = result.assets[0].uri;
         setSelectedImage(imageUri);
-        console.log('Image selected successfully:', imageUri);
+        console.log('Image selected successfully:', imageUri.substring(0, 50) + '...');
 
         // Navigate to image processor with the selected image
         router.push({
@@ -150,18 +234,32 @@ export default function HomeScreen() {
       }
     } catch (error) {
       console.error('Error picking image:', error);
-      Alert.alert('Error', 'Failed to pick image');
+      const errorMessage = Platform.OS === 'android' 
+        ? 'Failed to pick image. Please make sure you have granted storage permission.'
+        : 'Failed to pick image. Please try again.';
+      Alert.alert('Error', errorMessage);
     }
   };
 
   const takePhoto = async () => {
     try {
+      console.log('Take photo started on platform:', Platform.OS);
+      
+      if (Platform.OS === 'web') {
+        Alert.alert('Not Available', 'Camera is not available on web. Please use "Select Image" instead.');
+        return;
+      }
+
       const hasPermission = await checkAndRequestPermissions('camera');
 
       if (!hasPermission) {
+        const permissionMessage = Platform.OS === 'android' 
+          ? 'Camera permission is needed to take photos. Please grant permission in your device settings.'
+          : 'Camera access is needed to take photos. Please grant permission in your device settings.';
+          
         Alert.alert(
           'Permission Required', 
-          'Camera access is needed to take photos. Please grant permission in your device settings.',
+          permissionMessage,
           [
             { text: 'Cancel', style: 'cancel' },
             { text: 'Open Settings', onPress: () => router.push('/permission') }
@@ -170,17 +268,17 @@ export default function HomeScreen() {
         return;
       }
 
-      const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 1,
-      });
+      console.log('Launching camera...');
+      const result = await ImagePicker.launchCameraAsync(
+        PermissionService.getOptimalCameraConfig()
+      );
+
+      console.log('Camera result:', result.canceled ? 'canceled' : 'success');
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const imageUri = result.assets[0].uri;
         setSelectedImage(imageUri);
-        console.log('Photo taken successfully:', imageUri);
+        console.log('Photo taken successfully:', imageUri.substring(0, 50) + '...');
 
         // Navigate to image processor with the taken photo
         router.push({
@@ -193,26 +291,21 @@ export default function HomeScreen() {
       }
     } catch (error) {
       console.error('Error taking photo:', error);
-      Alert.alert('Error', 'Failed to take photo');
+      const errorMessage = Platform.OS === 'android' 
+        ? 'Failed to take photo. Please make sure you have granted camera permission.'
+        : 'Failed to take photo. Please try again.';
+      Alert.alert('Error', errorMessage);
     }
   };
 
   const checkAndRequestPermissions = async (type: 'media' | 'camera') => {
     try {
+      console.log(`Checking ${type} permission on ${Platform.OS}`);
+      
       if (type === 'media') {
-        const { status } = await ImagePicker.getMediaLibraryPermissionsAsync();
-        if (status !== 'granted') {
-          const { status: newStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-          return newStatus === 'granted';
-        }
-        return true;
+        return await PermissionService.ensureMediaLibraryPermission();
       } else {
-        const { status } = await ImagePicker.getCameraPermissionsAsync();
-        if (status !== 'granted') {
-          const { status: newStatus } = await ImagePicker.requestCameraPermissionsAsync();
-          return newStatus === 'granted';
-        }
-        return true;
+        return await PermissionService.ensureCameraPermission();
       }
     } catch (error) {
       console.error('Permission check failed:', error);

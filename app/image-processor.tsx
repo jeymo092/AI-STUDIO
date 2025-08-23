@@ -112,9 +112,43 @@ export default function ImageProcessorScreen() {
     return (params.selectedImage || params.imageUri) as string;
   }, [params.selectedImage, params.imageUri]);
 
+  const processingType = React.useMemo(() => {
+    return params.processingType as string;
+  }, [params.processingType]);
+
   useEffect(() => {
+    // Auto-start processing if a processing type is specified
+    if (processingType && selectedImage && mounted) {
+      console.log('Auto-starting processing for type:', processingType);
+      handleAutoProcessing(processingType);
+    }
     return () => setMounted(false);
-  }, []);
+  }, [processingType, selectedImage, mounted]);
+
+  const handleAutoProcessing = async (type: string) => {
+    switch (type) {
+      case 'Background Removal':
+        handleRemoveBG();
+        break;
+      case 'Object Eraser':
+        handleEraser();
+        break;
+      case 'Image Enhancement':
+        handleEnhance();
+        break;
+      case 'Style Transfer':
+        handleFilters();
+        break;
+      case 'Crop & Resize':
+        handleEdit();
+        break;
+      case 'Filters':
+        handleFilters();
+        break;
+      default:
+        console.log('Unknown processing type:', type);
+    }
+  };
 
   const handleBack = () => {
     if (router.canGoBack()) {
