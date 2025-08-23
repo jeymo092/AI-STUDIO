@@ -26,7 +26,8 @@ import {
     generateAIBackground,
     enhanceFace,
     submitHDProcessing,
-    getHDResult
+    getHDResult,
+    eraseObjects
 } from '../services/imageProcessingService';
 
 interface ToolButtonProps {
@@ -195,7 +196,7 @@ export default function ImageProcessorScreen() {
   };
 
   const handleEraser = () => {
-    processWithType('Eraser Tool', removeBackground);
+    processWithType('Eraser Tool', eraseObjects);
   };
 
   const handleEdit = () => {
