@@ -395,62 +395,47 @@ export const generateAIBackground = async (imageUri: string, prompt?: string): P
 };
 
 // Erase objects from image
-export const eraseObjects = async (imageUri: string, boundingBoxes?: number[][][]): Promise<ProcessingResult> => {
+export const eraseObjects = async (imageUri: string): Promise<ProcessingResult> => {
   try {
-    console.log('Starting object erasing...');
+    console.log('Starting object removal...');
     const base64Image = await imageToBase64(imageUri);
 
-    // Default bounding box if none provided (center area)
-    const defaultBoundingBoxes = boundingBoxes || [
-      [
-        [100, 100],
-        [300, 100],
-        [300, 300],
-        [100, 300]
-      ]
-    ];
-
-    const requestBody = {
-      image_bytes: base64Image,
-      image_format: 'png',
-      bounding_boxes: defaultBoundingBoxes
-    };
-
-    const response = await fetch('https://image-erase.p.rapidapi.com/image_erase', {
+    const response = await fetch('https://remove-objects-pro.p.rapidapi.com/image/editing/remove-objects-pro', {
       method: 'POST',
       headers: {
         'x-rapidapi-key': RAPIDAPI_KEY,
-        'x-rapidapi-host': 'image-erase.p.rapidapi.com',
-        'Content-Type': 'application/json'
+        'x-rapidapi-host': 'remove-objects-pro.p.rapidapi.com',
+        'Content-Type': 'application/x-www-form-urlencoded'
       },
-      body: JSON.stringify(requestBody)
+      body: new URLSearchParams({
+        image: base64Image
+      })
     });
 
-    console.log('Erase API response status:', response.status);
+    console.log('Remove objects API response status:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Erase API Error response:', errorText);
+      console.error('Remove objects API Error response:', errorText);
       throw new Error(`API Error: ${response.status} - ${errorText}`);
     }
 
     const result = await response.json();
 
-    if (result.image || result.image_bytes) {
-      const imageData = result.image || result.image_bytes;
-      console.log('Object erasing successful!');
+    if (result.image) {
+      console.log('Object removal successful!');
       return {
         success: true,
-        imageUrl: `data:image/png;base64,${imageData}`
+        imageUrl: `data:image/png;base64,${result.image}`
       };
     } else {
       throw new Error('No processed image returned');
     }
   } catch (error) {
-    console.error('Object erasing error:', error);
+    console.error('Object removal error:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Object erasing failed'
+      error: error instanceof Error ? error.message : 'Object removal failed'
     };
   }
 };
