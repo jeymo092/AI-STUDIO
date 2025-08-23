@@ -20,11 +20,19 @@ import { Alert, Dimensions, ScrollView, Text, TouchableOpacity, View, ImageBackg
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width, height } = Dimensions.get('window');
+const isSmallScreen = width < 768; // Define a breakpoint for smaller screens
 
 export default function HomeScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  // Mock function for handling processing type selection
+  const handleProcessingTypeSelect = (type: string) => {
+    console.log(`Selected processing type: ${type}`);
+    // In a real app, you would navigate to a specific processing screen or show a modal
+    Alert.alert('Processing Type Selected', `You chose: ${type}`);
+  };
 
   // Check and request permissions on mount
   useEffect(() => {
@@ -425,7 +433,279 @@ export default function HomeScreen() {
             />
           </View>
 
-          {/* Secondary tools */}
+          {/* Processing Options - Grid Layout */}
+          <View style={{ marginBottom: 32 }}>
+            <Text style={{ 
+              color: 'white', 
+              fontSize: isSmallScreen ? 18 : 20, 
+              fontWeight: 'bold', 
+              marginBottom: isSmallScreen ? 16 : 20 
+            }}>
+              Choose Processing Type
+            </Text>
+
+            {/* Grid Container */}
+            <View style={{ 
+              flexDirection: 'row', 
+              flexWrap: 'wrap',
+              justifyContent: 'space-between',
+              gap: isSmallScreen ? 8 : 12
+            }}>
+              {/* Remove Background */}
+              <TouchableOpacity 
+                onPress={() => handleProcessingTypeSelect('Background Removal')}
+                style={{ 
+                  backgroundColor: '#374151', 
+                  padding: isSmallScreen ? 12 : 16, 
+                  borderRadius: 16, 
+                  borderWidth: 1,
+                  borderColor: '#4B5563',
+                  alignItems: 'center',
+                  width: isSmallScreen ? '48%' : '31%',
+                  minHeight: isSmallScreen ? 120 : 140,
+                  justifyContent: 'center'
+                }}
+              >
+                <View style={{ 
+                  backgroundColor: '#8B5CF6', 
+                  padding: isSmallScreen ? 10 : 12, 
+                  borderRadius: 12, 
+                  marginBottom: 8 
+                }}>
+                  <User size={isSmallScreen ? 20 : 24} color="white" />
+                </View>
+                <Text style={{ 
+                  color: 'white', 
+                  fontSize: isSmallScreen ? 14 : 16, 
+                  fontWeight: '600',
+                  textAlign: 'center',
+                  marginBottom: 4
+                }}>
+                  Remove Background
+                </Text>
+                <Text style={{ 
+                  color: '#D1D5DB', 
+                  fontSize: isSmallScreen ? 11 : 12, 
+                  textAlign: 'center',
+                  lineHeight: 16
+                }}>
+                  Auto remove background
+                </Text>
+              </TouchableOpacity>
+
+              {/* Object Eraser */}
+              <TouchableOpacity 
+                onPress={() => handleProcessingTypeSelect('Object Eraser')}
+                style={{ 
+                  backgroundColor: '#374151', 
+                  padding: isSmallScreen ? 12 : 16, 
+                  borderRadius: 16, 
+                  borderWidth: 1,
+                  borderColor: '#4B5563',
+                  alignItems: 'center',
+                  width: isSmallScreen ? '48%' : '31%',
+                  minHeight: isSmallScreen ? 120 : 140,
+                  justifyContent: 'center'
+                }}
+              >
+                <View style={{ 
+                  backgroundColor: '#F97316', 
+                  padding: isSmallScreen ? 10 : 12, 
+                  borderRadius: 12, 
+                  marginBottom: 8 
+                }}>
+                  <Eraser size={isSmallScreen ? 20 : 24} color="white" />
+                </View>
+                <Text style={{ 
+                  color: 'white', 
+                  fontSize: isSmallScreen ? 14 : 16, 
+                  fontWeight: '600',
+                  textAlign: 'center',
+                  marginBottom: 4
+                }}>
+                  Object Eraser
+                </Text>
+                <Text style={{ 
+                  color: '#D1D5DB', 
+                  fontSize: isSmallScreen ? 11 : 12, 
+                  textAlign: 'center',
+                  lineHeight: 16
+                }}>
+                  Remove objects
+                </Text>
+              </TouchableOpacity>
+
+              {/* Image Enhancer */}
+              <TouchableOpacity 
+                onPress={() => handleProcessingTypeSelect('Image Enhancement')}
+                style={{ 
+                  backgroundColor: '#374151', 
+                  padding: isSmallScreen ? 12 : 16, 
+                  borderRadius: 16, 
+                  borderWidth: 1,
+                  borderColor: '#4B5563',
+                  alignItems: 'center',
+                  width: isSmallScreen ? '48%' : '31%',
+                  minHeight: isSmallScreen ? 120 : 140,
+                  justifyContent: 'center'
+                }}
+              >
+                <View style={{ 
+                  backgroundColor: '#10B981', 
+                  padding: isSmallScreen ? 10 : 12, 
+                  borderRadius: 12, 
+                  marginBottom: 8 
+                }}>
+                  <Sparkles size={isSmallScreen ? 20 : 24} color="white" />
+                </View>
+                <Text style={{ 
+                  color: 'white', 
+                  fontSize: isSmallScreen ? 14 : 16, 
+                  fontWeight: '600',
+                  textAlign: 'center',
+                  marginBottom: 4
+                }}>
+                  Enhancer
+                </Text>
+                <Text style={{ 
+                  color: '#D1D5DB', 
+                  fontSize: isSmallScreen ? 11 : 12, 
+                  textAlign: 'center',
+                  lineHeight: 16
+                }}>
+                  Enhance quality
+                </Text>
+              </TouchableOpacity>
+
+              {/* Style Transfer */}
+              <TouchableOpacity 
+                onPress={() => handleProcessingTypeSelect('Style Transfer')}
+                style={{ 
+                  backgroundColor: '#374151', 
+                  padding: isSmallScreen ? 12 : 16, 
+                  borderRadius: 16, 
+                  borderWidth: 1,
+                  borderColor: '#4B5563',
+                  alignItems: 'center',
+                  width: isSmallScreen ? '48%' : '31%',
+                  minHeight: isSmallScreen ? 120 : 140,
+                  justifyContent: 'center'
+                }}
+              >
+                <View style={{ 
+                  backgroundColor: '#EC4899', 
+                  padding: isSmallScreen ? 10 : 12, 
+                  borderRadius: 12, 
+                  marginBottom: 8 
+                }}>
+                  <Palette size={isSmallScreen ? 20 : 24} color="white" />
+                </View>
+                <Text style={{ 
+                  color: 'white', 
+                  fontSize: isSmallScreen ? 14 : 16, 
+                  fontWeight: '600',
+                  textAlign: 'center',
+                  marginBottom: 4
+                }}>
+                  Style Transfer
+                </Text>
+                <Text style={{ 
+                  color: '#D1D5DB', 
+                  fontSize: isSmallScreen ? 11 : 12, 
+                  textAlign: 'center',
+                  lineHeight: 16
+                }}>
+                  Apply art styles
+                </Text>
+              </TouchableOpacity>
+
+              {/* Crop & Resize */}
+              <TouchableOpacity 
+                onPress={() => handleProcessingTypeSelect('Crop & Resize')}
+                style={{ 
+                  backgroundColor: '#374151', 
+                  padding: isSmallScreen ? 12 : 16, 
+                  borderRadius: 16, 
+                  borderWidth: 1,
+                  borderColor: '#4B5563',
+                  alignItems: 'center',
+                  width: isSmallScreen ? '48%' : '31%',
+                  minHeight: isSmallScreen ? 120 : 140,
+                  justifyContent: 'center'
+                }}
+              >
+                <View style={{ 
+                  backgroundColor: '#3B82F6', 
+                  padding: isSmallScreen ? 10 : 12, 
+                  borderRadius: 12, 
+                  marginBottom: 8 
+                }}>
+                  <Crop size={isSmallScreen ? 20 : 24} color="white" />
+                </View>
+                <Text style={{ 
+                  color: 'white', 
+                  fontSize: isSmallScreen ? 14 : 16, 
+                  fontWeight: '600',
+                  textAlign: 'center',
+                  marginBottom: 4
+                }}>
+                  Crop & Resize
+                </Text>
+                <Text style={{ 
+                  color: '#D1D5DB', 
+                  fontSize: isSmallScreen ? 11 : 12, 
+                  textAlign: 'center',
+                  lineHeight: 16
+                }}>
+                  Crop precisely
+                </Text>
+              </TouchableOpacity>
+
+              {/* Filters */}
+              <TouchableOpacity 
+                onPress={() => handleProcessingTypeSelect('Filters')}
+                style={{ 
+                  backgroundColor: '#374151', 
+                  padding: isSmallScreen ? 12 : 16, 
+                  borderRadius: 16, 
+                  borderWidth: 1,
+                  borderColor: '#4B5563',
+                  alignItems: 'center',
+                  width: isSmallScreen ? '48%' : '31%',
+                  minHeight: isSmallScreen ? 120 : 140,
+                  justifyContent: 'center'
+                }}
+              >
+                <View style={{ 
+                  backgroundColor: '#F59E0B', 
+                  padding: isSmallScreen ? 10 : 12, 
+                  borderRadius: 12, 
+                  marginBottom: 8 
+                }}>
+                  <Sliders size={isSmallScreen ? 20 : 24} color="white" />
+                </View>
+                <Text style={{ 
+                  color: 'white', 
+                  fontSize: isSmallScreen ? 14 : 16, 
+                  fontWeight: '600',
+                  textAlign: 'center',
+                  marginBottom: 4
+                }}>
+                  Filters
+                </Text>
+                <Text style={{ 
+                  color: '#D1D5DB', 
+                  fontSize: isSmallScreen ? 11 : 12, 
+                  textAlign: 'center',
+                  lineHeight: 16
+                }}>
+                  Creative effects
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Secondary tools (kept as is, as they are not part of the grid change) */}
           <View style={{
             flexDirection: 'row',
             justifyContent: 'space-between',
